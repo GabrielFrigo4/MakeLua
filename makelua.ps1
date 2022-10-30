@@ -4,14 +4,28 @@
 # makelua use curl
 # makelua use tar
 
-$COMPILER = $Args[0] -as [string]; #msvc llvm gnu || compiler options
-$LUA_VERSION = $Args[1] -as [string]; #version
+if($args.Count >= 1){
+	$COMPILER = $Args[0] -as [string]; #msvc llvm gnu || compiler options	
+} else {
+	$COMPILER = 'msvc'
+}
+if($args.Count >= 2){
+	$LUA_VERSION = $Args[1] -as [string]; #lua version
+} else {
+	$Link = 'https://www.lua.org/ftp/';
+	$LUA_VERSION = (Invoke-WebRequest -Uri $Link).links.href[14].Replace('lua-', '').Replace('.tar.gz', '') -as [string];
+} 
+if($args.Count >= 3){
+	$LUAROCKS_VERSION = $Args[2] -as [string]; #luarocks version
+} else {
+	$Link = 'http://luarocks.github.io/luarocks/releases/';
+	$LUAROCKS_VERSION = (Invoke-WebRequest -Uri $Link).links.href[9].Replace('luarocks-', '').Replace('-windows-64.zip', '') -as [string];
+}
 $LUA_VERSION_ARRAY = ($LUA_VERSION).Split('.');
 $LUA_VERSION_NAME = ($LUA_VERSION_ARRAY[0] + $LUA_VERSION_ARRAY[1]) -as [string];
-$LUAROCKS_VERSION = '3.9.1'
 echo "Lua Version: $LUA_VERSION"
-echo "Lua Version Name: $LUA_VERSION_NAME"
 echo "LuaRocks Version: $LUAROCKS_VERSION"
+echo "Lua Version Name: $LUA_VERSION_NAME"
 
 echo 'start shell script'
 echo 'import luarocks'
