@@ -4,18 +4,18 @@
 # makelua use curl
 # makelua use tar
 
-if($args.Count >= 1){
+if($args.Count -ge 1){
 	$COMPILER = $Args[0] -as [string]; #msvc llvm gnu || compiler options	
 } else {
 	$COMPILER = 'msvc'
 }
-if($args.Count >= 2){
+if($args.Count -ge 2){
 	$LUA_VERSION = $Args[1] -as [string]; #lua version
 } else {
 	$Link = 'https://www.lua.org/ftp/';
 	$LUA_VERSION = (Invoke-WebRequest -Uri $Link).links.href[14].Replace('lua-', '').Replace('.tar.gz', '') -as [string];
 } 
-if($args.Count >= 3){
+if($args.Count -ge 3){
 	$LUAROCKS_VERSION = $Args[2] -as [string]; #luarocks version
 } else {
 	$Link = 'http://luarocks.github.io/luarocks/releases/';
@@ -35,11 +35,11 @@ if (Test-Path -Path luarocks.exe -PathType Leaf) {
 	rm luarocks-admin.exe
 }
 curl -R -O http://luarocks.github.io/luarocks/releases/luarocks-$LUAROCKS_VERSION-windows-64.zip
-7z x luarocks-3.9.1-windows-64.zip
-mv luarocks-3.9.1-windows-64/luarocks.exe luarocks.exe
-mv luarocks-3.9.1-windows-64/luarocks-admin.exe luarocks-admin.exe
-rm -r luarocks-3.9.1-windows-64
-rm luarocks-3.9.1-windows-64.zip
+7z x luarocks-$LUAROCKS_VERSION-windows-64.zip
+mv luarocks-$LUAROCKS_VERSION-windows-64/luarocks.exe luarocks.exe
+mv luarocks-$LUAROCKS_VERSION-windows-64/luarocks-admin.exe luarocks-admin.exe
+rm -r luarocks-$LUAROCKS_VERSION-windows-64
+rm luarocks-$LUAROCKS_VERSION-windows-64.zip
 echo 'import lua code'
 curl -R -O http://www.lua.org/ftp/lua-$LUA_VERSION.tar.gz
 tar zxf lua-$LUA_VERSION.tar.gz
