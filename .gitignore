@@ -1,0 +1,11 @@
+# ignore all dll
+*.dll
+# ignore all lib
+*.lib
+*.a
+# ignore all exe
+*.exe
+# ignore all bat
+*.bat
+# ignore all include
+include/
