@@ -1,4 +1,8 @@
-# 
+# makelua use powershell
+# makelua use msvc or llvm or gnu
+# makelua use 7z
+# makelua use curl
+# makelua use tar
 
 $COMPILER = $Args[0] -as [string]; #msvc llvm gnu || compiler options
 $LUA_VERSION = $Args[1] -as [string]; #version
