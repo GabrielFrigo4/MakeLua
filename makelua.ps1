@@ -1,11 +1,27 @@
+# 
+
 $COMPILER = $Args[0] -as [string]; #msvc llvm gnu || compiler options
 $LUA_VERSION = $Args[1] -as [string]; #version
 $LUA_VERSION_ARRAY = ($LUA_VERSION).Split('.');
 $LUA_VERSION_NAME = ($LUA_VERSION_ARRAY[0] + $LUA_VERSION_ARRAY[1]) -as [string];
+$LUAROCKS_VERSION = '3.9.1'
 echo "Lua Version: $LUA_VERSION"
 echo "Lua Version Name: $LUA_VERSION_NAME"
+echo "LuaRocks Version: $LUAROCKS_VERSION"
 
 echo 'start shell script'
+echo 'import luarocks'
+if (Test-Path -Path luarocks.exe -PathType Leaf) {
+	rm luarocks.exe
+} if (Test-Path -Path luarocks-admin.exe -PathType Leaf) {
+	rm luarocks-admin.exe
+}
+curl -R -O http://luarocks.github.io/luarocks/releases/luarocks-$LUAROCKS_VERSION-windows-64.zip
+7z x luarocks-3.9.1-windows-64.zip
+mv luarocks-3.9.1-windows-64/luarocks.exe luarocks.exe
+mv luarocks-3.9.1-windows-64/luarocks-admin.exe luarocks-admin.exe
+rm -r luarocks-3.9.1-windows-64
+rm luarocks-3.9.1-windows-64.zip
 echo 'import lua code'
 curl -R -O http://www.lua.org/ftp/lua-$LUA_VERSION.tar.gz
 tar zxf lua-$LUA_VERSION.tar.gz
