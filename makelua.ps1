@@ -100,17 +100,22 @@ if ($COMPILER -eq 'msvc'){
 	  param(
 		[String] $scriptName
 	  )
-	  $env:path = $env:path + ';C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build'
-	  $env:path = $env:path + ';C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build'
-	  $env:path = $env:path + ';C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build'
-	  $env:path = $env:path + ';C:\Program Files (x86)\Microsoft Visual Studio\2015\Community\VC\Auxiliary\Build'
-	  $cmdLine = "$scriptName $args & set"
+	  $startEnv = $env;
+	  $env:path = $env:path + ';C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build';
+	  $env:path = $env:path + ';C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build';
+	  $env:path = $env:path + ';C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build';
+	  $env:path = $env:path + ';C:\Program Files (x86)\Microsoft Visual Studio\2015\Community\VC\Auxiliary\Build';
+	  $cmdLine = "$scriptName $args & set";
 	  & $env:SystemRoot\system32\cmd.exe /c $cmdLine |
 	  Select-String '^([^=]*)=(.*)$' | ForEach-Object {
 		$varName = $_.Matches[0].Groups[1].Value
 		$varValue = $_.Matches[0].Groups[2].Value
 		Set-Item Env:$varName $varValue
 	  }
+	}
+	
+	function RestartEnv {
+		$env = $startEnv;
 	}
 	
 	Invoke-VsScript vcvars64.bat
@@ -128,6 +133,7 @@ if ($COMPILER -eq 'msvc'){
 	echo "start build luac$LUA_VERSION_NAME.exe"
 	[void](cl /Ot lua$LUA_VERSION_NAME.lib luac.c /link /subsystem:console /defaultlib:shell32.lib /defaultlib:user32.lib /defaultlib:kernel32.lib  /out:luac$LUA_VERSION_NAME.exe)
 	echo 'finish build'
+	RestartEnv;
 } elseif ($COMPILER -eq 'llvm'){
 	echo 'using LLVM compiler'
 	echo "start build lua$LUA_VERSION_NAME.dll"
