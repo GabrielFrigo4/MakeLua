@@ -43,8 +43,19 @@ rm luarocks-$LUAROCKS_VERSION-windows-64.zip
 echo 'import lua code'
 curl -R -O http://www.lua.org/ftp/lua-$LUA_VERSION.tar.gz
 tar zxf lua-$LUA_VERSION.tar.gz
-cd lua-$LUA_VERSION
-cd src
+if (Test-Path -Path ./lua-$LUA_VERSION) {
+	cd lua-$LUA_VERSION
+} else {
+	echo "dont find lua-$LUA_VERSION folder";
+	exit;
+}
+if (Test-Path -Path ./src) {
+	cd src;
+} else {
+	echo 'dont find src folder';
+	cd ..
+	exit;
+}
 
 new-item wmain.c
 set-content wmain.c '#include <windows.h>
