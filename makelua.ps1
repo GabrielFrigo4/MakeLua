@@ -1,10 +1,39 @@
 # makelua use powershell
 # makelua use msvc or llvm or gnu
-# makelua use 7z
 # makelua use curl
 # makelua use tar
+# makelua use 7z
 
-# makelua options: (link, compiler, lua version, luarocks version)
+# makelua noone arg
+if($args.Count -eq 0){
+	Write-Host 'type: "makelua.ps1 help" for more information'
+	exit;
+}
+
+# makelua help
+if(($args.Count -ge 1) -and ($Args[0] -eq 'help')){
+	Write-Host '|MAKE_LUA HELP|
+
+MakeLua uses:
+ - powershell
+ - msvc or llvm or gnu
+ - curl
+ - tar
+ - 7z
+
+MakeLua options: (link, compiler, otimization, lua_version, luarocks_version)
+ - link:
+ - compiler:
+ - otimization:
+ - lua_version:
+ - luarocks_version:
+
+to install use "makelua.ps1 dynamic msvc fast 5.4.4 3.9.1"
+MakeLua is a installer'
+	exit;
+}
+
+# makelua options: (link, compiler, otimization, lua_version, luarocks_version)
 if($args.Count -ge 1){
 	$IS_DYNAMIC_OR_STATIC = $Args[0] -as [string]; #msvc llvm gnu || compiler options	
 } else {
@@ -16,13 +45,18 @@ if($args.Count -ge 2){
 	$COMPILER = 'msvc';
 }
 if($args.Count -ge 3){
-	$LUA_VERSION = $Args[2] -as [string]; #lua version
+	$OTIMIZATION = $Args[2] -as [string]; #default size speed || otimization options	
+} else {
+	$OTIMIZATION = 'default';
+}
+if($args.Count -ge 4){
+	$LUA_VERSION = $Args[3] -as [string]; #lua version
 } else {
 	$Link = 'https://www.lua.org/ftp/';
 	$LUA_VERSION = (Invoke-WebRequest -Uri $Link).links.href[14].Replace('lua-', '').Replace('.tar.gz', '') -as [string];
 } 
-if($args.Count -ge 4){
-	$LUAROCKS_VERSION = $Args[3] -as [string]; #luarocks version
+if($args.Count -ge 5){
+	$LUAROCKS_VERSION = $Args[4] -as [string]; #luarocks version
 } else {
 	$Link = 'http://luarocks.github.io/luarocks/releases/';
 	$LUAROCKS_VERSION = (Invoke-WebRequest -Uri $Link).links.href[9].Replace('luarocks-', '').Replace('-windows-64.zip', '') -as [string];
