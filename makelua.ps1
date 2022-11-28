@@ -4,19 +4,25 @@
 # makelua use curl
 # makelua use tar
 
+# makelua options: (link, compiler, lua version, luarocks version)
 if($args.Count -ge 1){
-	$COMPILER = $Args[0] -as [string]; #msvc llvm gnu || compiler options	
+	$IS_DYNAMIC_OR_STATIC = $Args[0] -as [string]; #msvc llvm gnu || compiler options	
+} else {
+	$IS_DYNAMIC_OR_STATIC='dynamic'; # dynamic static || link options
+}
+if($args.Count -ge 2){
+	$COMPILER = $Args[1] -as [string]; #msvc llvm gnu || compiler options	
 } else {
 	$COMPILER = 'msvc';
 }
-if($args.Count -ge 2){
-	$LUA_VERSION = $Args[1] -as [string]; #lua version
+if($args.Count -ge 3){
+	$LUA_VERSION = $Args[2] -as [string]; #lua version
 } else {
 	$Link = 'https://www.lua.org/ftp/';
 	$LUA_VERSION = (Invoke-WebRequest -Uri $Link).links.href[14].Replace('lua-', '').Replace('.tar.gz', '') -as [string];
 } 
-if($args.Count -ge 3){
-	$LUAROCKS_VERSION = $Args[2] -as [string]; #luarocks version
+if($args.Count -ge 4){
+	$LUAROCKS_VERSION = $Args[3] -as [string]; #luarocks version
 } else {
 	$Link = 'http://luarocks.github.io/luarocks/releases/';
 	$LUAROCKS_VERSION = (Invoke-WebRequest -Uri $Link).links.href[9].Replace('luarocks-', '').Replace('-windows-64.zip', '') -as [string];
@@ -152,17 +158,32 @@ if ($COMPILER -eq 'msvc'){
 } elseif ($COMPILER -eq 'gnu'){
 	echo 'using GNU compiler';
 	echo "start build lua$LUA_VERSION_NAME.dll";
-	gcc -O2 -DNDEBUG -static-libgcc -static lapi.c lcode.c lctype.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c lobject.c lopcodes.c lparser.c lstate.c lstring.c ltable.c ltm.c lundump.c lvm.c lzio.c lauxlib.c lbaselib.c lcorolib.c ldblib.c liolib.c lmathlib.c loadlib.c loslib.c lstrlib.c ltablib.c lutf8lib.c linit.c -shared -o lua$LUA_VERSION_NAME.dll;
+	gcc -O3 -DNDEBUG -static-libgcc -static lapi.c lcode.c lctype.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c lobject.c lopcodes.c lparser.c lstate.c lstring.c ltable.c ltm.c lundump.c lvm.c lzio.c lauxlib.c lbaselib.c lcorolib.c ldblib.c liolib.c lmathlib.c loadlib.c loslib.c lstrlib.c ltablib.c lutf8lib.c linit.c -shared -o lua$LUA_VERSION_NAME.dll;
 	echo "start build lua$LUA_VERSION_NAME.lib and liblua$LUA_VERSION_NAME.a";
-	gcc -O2 -DNDEBUG -c lapi.c lcode.c lctype.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c lobject.c lopcodes.c lparser.c lstate.c lstring.c ltable.c ltm.c lundump.c lvm.c lzio.c lauxlib.c lbaselib.c lcorolib.c ldblib.c liolib.c lmathlib.c loadlib.c loslib.c lstrlib.c ltablib.c lutf8lib.c linit.c;
+	gcc -O3 -DNDEBUG -c lapi.c lcode.c lctype.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c lobject.c lopcodes.c lparser.c lstate.c lstring.c ltable.c ltm.c lundump.c lvm.c lzio.c lauxlib.c lbaselib.c lcorolib.c ldblib.c liolib.c lmathlib.c loadlib.c loslib.c lstrlib.c ltablib.c lutf8lib.c linit.c;
 	ar -rcs lua$LUA_VERSION_NAME.lib lapi.o lcode.o lctype.o ldebug.o ldo.o ldump.o lfunc.o lgc.o llex.o lmem.o lobject.o lopcodes.o lparser.o lstate.o lstring.o ltable.o ltm.o lundump.o lvm.o lzio.o lauxlib.o lbaselib.o lcorolib.o ldblib.o liolib.o lmathlib.o loadlib.o loslib.o lstrlib.o ltablib.o lutf8lib.o linit.o;
 	cp lua$LUA_VERSION_NAME.lib liblua$LUA_VERSION_NAME.a;
 	echo "start build lua$LUA_VERSION_NAME.exe";
-	gcc -O2 -DNDEBUG -static-libgcc -static lua.c -L. -Bstatic -$('llua' + $LUA_VERSION_NAME) -W -o lua$LUA_VERSION_NAME.exe;
+	if($IS_DYNAMIC_OR_STATIC -eq 'dynamic'){
+		gcc -O3 -DNDEBUG -static-libgcc -static lua.c lua$LUA_VERSION_NAME.lib -W -o lua$LUA_VERSION_NAME.exe;
+	}
+	elseif($IS_DYNAMIC_OR_STATIC -eq 'static'){
+		gcc -O3 -DNDEBUG -static-libgcc -static lua.c -L. -Bstatic -$('llua' + $LUA_VERSION_NAME) -W -o lua$LUA_VERSION_NAME.exe;
+	}
 	echo "start build wlua$LUA_VERSION_NAME.exe";
-	gcc -mwindows -O2 -DNDEBUG -static-libgcc -static lua.c -L. -Bstatic -$('llua' + $LUA_VERSION_NAME) -W -o wlua$LUA_VERSION_NAME.exe;
+	if($IS_DYNAMIC_OR_STATIC -eq 'dynamic'){
+		gcc -mwindows -O3 -DNDEBUG -static-libgcc -static lua.c lua$LUA_VERSION_NAME.lib -W -o wlua$LUA_VERSION_NAME.exe;
+	}
+	elseif($IS_DYNAMIC_OR_STATIC -eq 'static'){
+		gcc -mwindows -O3 -DNDEBUG -static-libgcc -static lua.c -L. -Bstatic -$('llua' + $LUA_VERSION_NAME) -W -o wlua$LUA_VERSION_NAME.exe;
+	}
 	echo "start build luac$LUA_VERSION_NAME.exe";
-	gcc -O2 -DNDEBUG -static-libgcc -static luac.c -L. -Bstatic -$('llua' + $LUA_VERSION_NAME) -W -o luac$LUA_VERSION_NAME.exe;
+	if($IS_DYNAMIC_OR_STATIC -eq 'dynamic'){
+		gcc -O3 -DNDEBUG -static-libgcc -static luac.c lua$LUA_VERSION_NAME.lib -W -o luac$LUA_VERSION_NAME.exe;
+	}
+	elseif($IS_DYNAMIC_OR_STATIC -eq 'static'){
+		gcc -O3 -DNDEBUG -static-libgcc -static luac.c -L. -Bstatic -$('llua' + $LUA_VERSION_NAME) -W -o luac$LUA_VERSION_NAME.exe;
+	}
 	echo 'finish build';
 } else {
 	echo "don't exist this compiler: $COMPILER"
