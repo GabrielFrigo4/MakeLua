@@ -4,6 +4,8 @@
 # makelua use tar
 # makelua use 7z
 
+$MAKE_LUA_VERSION = '1.0.0'
+
 # makelua noone arg
 if($args.Count -eq 0){
 	Write-Host 'type: "makelua.ps1 help" for more information'
@@ -12,7 +14,12 @@ if($args.Count -eq 0){
 
 # makelua help
 if(($args.Count -ge 1) -and ($Args[0] -eq 'help')){
-	Write-Host '|MAKE_LUA HELP|
+	$SCRIPT_PATH = $PSScriptRoot
+	Write-Host "|MAKE_LUA HELP|
+	
+MakeLua info:
+ - path: `"$SCRIPT_PATH`"
+ - version: $MAKE_LUA_VERSION
 
 MakeLua uses:
  - powershell
@@ -28,8 +35,8 @@ MakeLua options: (link, compiler, otimization, lua_version, luarocks_version)
  - lua_version:
  - luarocks_version:
 
-to install use "makelua.ps1 dynamic msvc fast 5.4.4 3.9.1"
-MakeLua is a installer'
+to install use `"makelua.ps1 dynamic msvc fast 5.4.4 3.9.1`"
+MakeLua is a installer"
 	exit;
 }
 
