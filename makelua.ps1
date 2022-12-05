@@ -4,8 +4,11 @@
 # makelua use tar
 # makelua use 7z
 
+$CURRENT_PATH = pwd
+$SCRIPT_PATH = $PSScriptRoot
 $MAKE_LUA_VERSION = '1.0.0'
 
+cd $SCRIPT_PATH
 # makelua noone arg
 if($args.Count -eq 0){
 	Write-Host 'type: "makelua.ps1 help" for more information'
@@ -14,7 +17,6 @@ if($args.Count -eq 0){
 
 # makelua help
 if(($args.Count -ge 1) -and ($Args[0] -eq 'help')){
-	$SCRIPT_PATH = $PSScriptRoot
 	Write-Host "|MAKE_LUA HELP|
 	
 MakeLua info:
@@ -283,4 +285,5 @@ set-content wlua.bat "@call wlua$LUA_VERSION_NAME %*";
 set-content makelua.bat "@SET mypath=%~dp0
 @call pwsh -file `"%mypath%\makelua.ps1`" %*";
 echo 'finish script';
+cd $CURRENT_PATH
 pause;
