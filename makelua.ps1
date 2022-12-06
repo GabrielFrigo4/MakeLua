@@ -4,6 +4,16 @@
 # makelua use tar
 # makelua use 7z
 
+function GetLuaVersionWeb{
+	$Link = 'https://www.lua.org/ftp/';
+	return (Invoke-WebRequest -Uri $Link).links.href[14].Replace('lua-', '').Replace('.tar.gz', '') -as [string];
+}
+
+function GetLuaRocksVersionWeb{
+	$Link = 'http://luarocks.github.io/luarocks/releases/';
+	return (Invoke-WebRequest -Uri $Link).links.href[9].Replace('luarocks-', '').Replace('-windows-64.zip', '') -as [string];
+}
+
 $CURRENT_OS = 'Windows 11'
 $CURRENT_PATH = pwd
 $SCRIPT_PATH = $PSScriptRoot
@@ -18,6 +28,8 @@ if($args.Count -eq 0){
 
 # makelua help
 if(($args.Count -ge 1) -and ($Args[0] -eq 'help')){
+	$LUA_VERSION = GetLuaVersionWeb;
+	$LUAROCKS_VERSION = GetLuaRocksVersionWeb;
 	Write-Host "|MAKE_LUA HELP|
 	
 MakeLua info:
@@ -39,7 +51,7 @@ MakeLua options: (link, compiler, optimize, lua_version, luarocks_version)
  - lua_version:
  - luarocks_version:
 
-to install use `"makelua.ps1 dynamic msvc fast 5.4.4 3.9.1`"
+to install use `"makelua dynamic msvc default $LUA_VERSION $LUAROCKS_VERSION`"
 MakeLua is a installer";
 	exit;
 }
@@ -63,14 +75,12 @@ if($args.Count -ge 3){
 if($args.Count -ge 4){
 	$LUA_VERSION = $Args[3] -as [string]; #lua version
 } else {
-	$Link = 'https://www.lua.org/ftp/';
-	$LUA_VERSION = (Invoke-WebRequest -Uri $Link).links.href[14].Replace('lua-', '').Replace('.tar.gz', '') -as [string];
+	$LUA_VERSION = GetLuaVersionWeb;
 } 
 if($args.Count -ge 5){
 	$LUAROCKS_VERSION = $Args[4] -as [string]; #luarocks version
 } else {
-	$Link = 'http://luarocks.github.io/luarocks/releases/';
-	$LUAROCKS_VERSION = (Invoke-WebRequest -Uri $Link).links.href[9].Replace('luarocks-', '').Replace('-windows-64.zip', '') -as [string];
+	$LUAROCKS_VERSION = GetLuaRocksVersionWeb;
 }
 $LUA_VERSION_ARRAY = ($LUA_VERSION).Split('.');
 $LUA_VERSION_NAME = ($LUA_VERSION_ARRAY[0] + $LUA_VERSION_ARRAY[1]) -as [string];
