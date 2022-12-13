@@ -191,7 +191,12 @@ if ($COMPILER -eq 'msvc'){
 	Invoke-VsScript vcvars64.bat;
 	echo 'using MSVC compiler';
 	echo 'start build .c files';
-	cl /MD /$O /c /DLUA_BUILD_AS_DLL *.c | Out-Null;
+	if($IS_DYNAMIC_OR_STATIC -eq 'dynamic'){
+		cl /MD /$O /c /DLUA_BUILD_AS_DLL *.c | Out-Null;
+	}
+	elseif($IS_DYNAMIC_OR_STATIC -eq 'static'){
+		cl /MD /$O /c /DLUA_BUILD_AS_LIB *.c | Out-Null;
+	}
 	ren lua.obj lua.o;
 	ren luac.obj luac.o;
 	ren wmain.obj wmain.o;
@@ -204,7 +209,7 @@ if ($COMPILER -eq 'msvc'){
 		link /subsystem:console /OUT:lua$LUA_VERSION_NAME.exe lua.o lua$LUA_VERSION_NAME.lib | Out-Null;	
 	}
 	elseif($IS_DYNAMIC_OR_STATIC -eq 'static'){
-		link /subsystem:console /OUT:lua$LUA_VERSION_NAME.exe lua.o lua$LUA_VERSION_NAME-static.lib | Out-Null;
+		link /subsystem:console /OUT:lua$LUA_VERSION_NAME.exe lua$LUA_VERSION_NAME-static.lib lua.o | Out-Null;	
 	}
 	echo "start build wlua$LUA_VERSION_NAME.exe";
 	if($IS_DYNAMIC_OR_STATIC -eq 'dynamic'){
@@ -229,7 +234,12 @@ if ($COMPILER -eq 'msvc'){
 	}
 	echo 'using LLVM compiler';
 	echo 'start build .c files';
-	clang -MD -$O -c -DLUA_BUILD_AS_DLL *.c | Out-Null;
+	if($IS_DYNAMIC_OR_STATIC -eq 'dynamic'){
+		clang -MD -$O -c -DLUA_BUILD_AS_DLL *.c | Out-Null;
+	}
+	elseif($IS_DYNAMIC_OR_STATIC -eq 'static'){
+		clang -MD -$O -c -DLUA_BUILD_AS_LIB *.c | Out-Null;
+	}
 	ren lua.o lua.obj;
 	ren luac.o luac.obj;
 	ren wmain.o wmain.obj;
@@ -265,32 +275,36 @@ if ($COMPILER -eq 'msvc'){
 		$O = 'Oz'
 	}
 	echo 'using GNU compiler';
+	echo 'start build .c files';
+	gcc -$O -DNDEBUG -c *.c | Out-Null;
+	ren lua.o lua.obj;
+	ren luac.o luac.obj;
+	ren wmain.o wmain.obj;
 	echo "start build lua$LUA_VERSION_NAME.dll";
-	gcc -$O -DNDEBUG -static-libgcc -static lapi.c lcode.c lctype.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c lobject.c lopcodes.c lparser.c lstate.c lstring.c ltable.c ltm.c lundump.c lvm.c lzio.c lauxlib.c lbaselib.c lcorolib.c ldblib.c liolib.c lmathlib.c loadlib.c loslib.c lstrlib.c ltablib.c lutf8lib.c linit.c -shared -o lua$LUA_VERSION_NAME.dll;
+	gcc -$O -DNDEBUG -static-libgcc -static *.o -shared -o lua$LUA_VERSION_NAME.dll;
 	echo "start build lua$LUA_VERSION_NAME.lib and liblua$LUA_VERSION_NAME.a";
-	gcc -$O -DNDEBUG -c lapi.c lcode.c lctype.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c lobject.c lopcodes.c lparser.c lstate.c lstring.c ltable.c ltm.c lundump.c lvm.c lzio.c lauxlib.c lbaselib.c lcorolib.c ldblib.c liolib.c lmathlib.c loadlib.c loslib.c lstrlib.c ltablib.c lutf8lib.c linit.c;
 	ar -rcs lua$LUA_VERSION_NAME.lib lapi.o lcode.o lctype.o ldebug.o ldo.o ldump.o lfunc.o lgc.o llex.o lmem.o lobject.o lopcodes.o lparser.o lstate.o lstring.o ltable.o ltm.o lundump.o lvm.o lzio.o lauxlib.o lbaselib.o lcorolib.o ldblib.o liolib.o lmathlib.o loadlib.o loslib.o lstrlib.o ltablib.o lutf8lib.o linit.o;
 	cp lua$LUA_VERSION_NAME.lib liblua$LUA_VERSION_NAME.a;
 	echo "start build lua$LUA_VERSION_NAME.exe";
 	if($IS_DYNAMIC_OR_STATIC -eq 'dynamic'){
-		gcc -$O -DNDEBUG -static-libgcc -static lua.c lua$LUA_VERSION_NAME.dll -W -o lua$LUA_VERSION_NAME.exe;
+		gcc -$O -DNDEBUG -static-libgcc -static lua.obj lua$LUA_VERSION_NAME.dll -W -o lua$LUA_VERSION_NAME.exe;
 	}
 	elseif($IS_DYNAMIC_OR_STATIC -eq 'static'){
-		gcc -$O -DNDEBUG -static-libgcc -static lua.c -L. -Bstatic -$('llua' + $LUA_VERSION_NAME) -W -o lua$LUA_VERSION_NAME.exe;
+		gcc -$O -DNDEBUG -static-libgcc -static lua.obj -L. -Bstatic -$('llua' + $LUA_VERSION_NAME) -W -o lua$LUA_VERSION_NAME.exe;
 	}
 	echo "start build wlua$LUA_VERSION_NAME.exe";
 	if($IS_DYNAMIC_OR_STATIC -eq 'dynamic'){
-		gcc -mwindows -$O -DNDEBUG -static-libgcc -static lua.c lua$LUA_VERSION_NAME.dll -W -o wlua$LUA_VERSION_NAME.exe;
+		gcc -mwindows -$O -DNDEBUG -static-libgcc -static lua.obj lua$LUA_VERSION_NAME.dll -W -o wlua$LUA_VERSION_NAME.exe;
 	}
 	elseif($IS_DYNAMIC_OR_STATIC -eq 'static'){
-		gcc -mwindows -$O -DNDEBUG -static-libgcc -static lua.c -L. -Bstatic -$('llua' + $LUA_VERSION_NAME) -W -o wlua$LUA_VERSION_NAME.exe;
+		gcc -mwindows -$O -DNDEBUG -static-libgcc -static lua.obj -L. -Bstatic -$('llua' + $LUA_VERSION_NAME) -W -o wlua$LUA_VERSION_NAME.exe;
 	}
 	echo "start build luac$LUA_VERSION_NAME.exe";
 	if($IS_DYNAMIC_OR_STATIC -eq 'dynamic'){
-		gcc -$O -DNDEBUG -static-libgcc -static luac.c lua$LUA_VERSION_NAME.dll -W -o luac$LUA_VERSION_NAME.exe;
+		gcc -$O -DNDEBUG -static-libgcc -static luac.obj lua$LUA_VERSION_NAME.dll -W -o luac$LUA_VERSION_NAME.exe;
 	}
 	elseif($IS_DYNAMIC_OR_STATIC -eq 'static'){
-		gcc -$O -DNDEBUG -static-libgcc -static luac.c -L. -Bstatic -$('llua' + $LUA_VERSION_NAME) -W -o luac$LUA_VERSION_NAME.exe;
+		gcc -$O -DNDEBUG -static-libgcc -static luac.obj -L. -Bstatic -$('llua' + $LUA_VERSION_NAME) -W -o luac$LUA_VERSION_NAME.exe;
 	}
 	echo 'finish build';
 } else {
