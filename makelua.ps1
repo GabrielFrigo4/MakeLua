@@ -4,6 +4,19 @@
 # makelua use tar
 # makelua use 7z
 
+$T = $host.ui.RawUI.ForegroundColor;
+
+function SetColor{
+	param(
+		[String] $color
+	)
+	$host.ui.RawUI.ForegroundColor = $color;
+}
+
+function ResetColor{
+	$host.ui.RawUI.ForegroundColor = $T;
+}
+
 function GetLuaVersionWeb{
 	$Link = 'https://www.lua.org/ftp/';
 	return (Invoke-WebRequest -Uri $Link).links.href[14].Replace('lua-', '').Replace('.tar.gz', '') -as [string];
@@ -14,22 +27,24 @@ function GetLuaRocksVersionWeb{
 	return (Invoke-WebRequest -Uri $Link).links.href[9].Replace('luarocks-', '').Replace('-windows-64.zip', '') -as [string];
 }
 
-$CURRENT_OS = 'Windows 11'
-$CURRENT_PATH = pwd
-$SCRIPT_PATH = $PSScriptRoot
-$MAKE_LUA_VERSION = '1.0.0'
+$CURRENT_OS = (Get-CimInstance -ClassName CIM_OperatingSystem).Caption;
+$CURRENT_PATH = pwd;
+$SCRIPT_PATH = $PSScriptRoot;
+$MAKE_LUA_VERSION = '1.0.0';
+$LUA_VERSION_WEB = GetLuaVersionWeb;
+$LUAROCKS_VERSION_WEB = GetLuaRocksVersionWeb;
 
-cd $SCRIPT_PATH
+cd $SCRIPT_PATH;
 # makelua noone arg
 if($args.Count -eq 0){
-	Write-Host 'type: "makelua help" for more information'
+	Write-Host 'type: "makelua help" for more information';
 	exit;
 }
 
 # makelua help
 if(($args.Count -ge 1) -and ($Args[0] -eq 'help')){
-	$LUA_VERSION = GetLuaVersionWeb;
-	$LUAROCKS_VERSION = GetLuaRocksVersionWeb;
+	$LUA_VERSION = $LUA_VERSION_WEB;
+	$LUAROCKS_VERSION = $LUAROCKS_VERSION_WEB;
 	Write-Host "|MAKE_LUA HELP|
 	
 MakeLua info:
@@ -44,7 +59,11 @@ MakeLua uses:
  - tar
  - 7z
 
-MakeLua options: (link, compiler, optimize, lua_version, luarocks_version)
+MakeLua options: (help / install)
+ - help: show inf
+ - install: install lua and luarocks
+
+MakeLua install options: (link, compiler, optimize, lua_version, luarocks_version)
  - link: dynamic static
  - compiler: msvc llvm gnu
  - optimize: default size speed
@@ -57,31 +76,47 @@ MakeLua is a installer";
 }
 
 # makelua options: (link, compiler, optimize, lua_version, luarocks_version)
-if($args.Count -ge 1){
-	$IS_DYNAMIC_OR_STATIC = $Args[0] -as [string]; #dynamic static || link options	
-} else {
-	$IS_DYNAMIC_OR_STATIC='dynamic';
+if(($args.Count -ge 1 ) -and ($args[0] -eq 'install')){
+	SetColor "Green";
+	echo 'MakeLua Options Using:';
+	$ERR = $False;
+	if($args.Count -ge 2){
+		$IS_DYNAMIC_OR_STATIC = $Args[0] -as [string]; #dynamic static || link options	
+	} else {
+		$IS_DYNAMIC_OR_STATIC='dynamic';
+		echo " - link: $IS_DYNAMIC_OR_STATIC";
+	}
+	if($args.Count -ge 3){
+		$COMPILER = $Args[1] -as [string]; #msvc llvm gnu || compiler options	
+	} else {
+		$COMPILER = 'msvc';
+		echo " - compiler: $COMPILER";
+	}
+	if($args.Count -ge 4){
+		$OPTIMIZE = $Args[2] -as [string]; #default size speed || optimize options	
+	} else {
+		$OPTIMIZE = 'default';
+		echo " - optimize: $OPTIMIZE";
+	}
+	if($args.Count -ge 5){
+		$LUA_VERSION = $Args[3] -as [string]; #lua version
+	} else {
+		$LUA_VERSION = $LUA_VERSION_WEB;
+		echo " - lua_version: $LUA_VERSION";
+	} 
+	if($args.Count -ge 6){
+		$LUAROCKS_VERSION = $Args[4] -as [string]; #luarocks version
+	} else {
+		$LUAROCKS_VERSION = $LUAROCKS_VERSION_WEB;
+		echo " - luarocks_version: $LUAROCKS_VERSION";
+	}
+	echo '';
+	ResetColor;
+	if($ERR -eq $True){
+		exit;
+	}
 }
-if($args.Count -ge 2){
-	$COMPILER = $Args[1] -as [string]; #msvc llvm gnu || compiler options	
-} else {
-	$COMPILER = 'msvc';
-}
-if($args.Count -ge 3){
-	$OPTIMIZE = $Args[2] -as [string]; #default size speed || optimize options	
-} else {
-	$OPTIMIZE = 'default';
-}
-if($args.Count -ge 4){
-	$LUA_VERSION = $Args[3] -as [string]; #lua version
-} else {
-	$LUA_VERSION = GetLuaVersionWeb;
-} 
-if($args.Count -ge 5){
-	$LUAROCKS_VERSION = $Args[4] -as [string]; #luarocks version
-} else {
-	$LUAROCKS_VERSION = GetLuaRocksVersionWeb;
-}
+
 $LUA_VERSION_ARRAY = ($LUA_VERSION).Split('.');
 $LUA_VERSION_NAME = ($LUA_VERSION_ARRAY[0] + $LUA_VERSION_ARRAY[1]) -as [string];
 echo "Lua Version: $LUA_VERSION";
@@ -168,20 +203,20 @@ if ($COMPILER -eq 'msvc'){
 	}
 	$startEnv = $env:path;
 	function Invoke-VsScript {
-	  param(
-		[String] $scriptName
-	  )
-	  $env:path = $env:path + ';C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build';
-	  $env:path = $env:path + ';C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build';
-	  $env:path = $env:path + ';C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build';
-	  $env:path = $env:path + ';C:\Program Files (x86)\Microsoft Visual Studio\2015\Community\VC\Auxiliary\Build';
-	  $cmdLine = "$scriptName $args & set";
-	  & $env:SystemRoot\system32\cmd.exe /c $cmdLine |
-	  Select-String '^([^=]*)=(.*)$' | ForEach-Object {
-		$varName = $_.Matches[0].Groups[1].Value;
-		$varValue = $_.Matches[0].Groups[2].Value;
-		Set-Item Env:$varName $varValue;
-	  }
+		param(
+			[String] $scriptName
+		)
+		$env:path = $env:path + ';C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build';
+		$env:path = $env:path + ';C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build';
+		$env:path = $env:path + ';C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build';
+		$env:path = $env:path + ';C:\Program Files (x86)\Microsoft Visual Studio\2015\Community\VC\Auxiliary\Build';
+		$cmdLine = "$scriptName $args & set";
+		& $env:SystemRoot\system32\cmd.exe /c $cmdLine |
+		Select-String '^([^=]*)=(.*)$' | ForEach-Object {
+			$varName = $_.Matches[0].Groups[1].Value;
+			$varValue = $_.Matches[0].Groups[2].Value;
+			Set-Item Env:$varName $varValue;
+		}
 	}
 	
 	function RestartEnv {
