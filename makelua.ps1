@@ -189,38 +189,32 @@ if ($COMPILER -eq 'msvc'){
 	}
 	
 	Invoke-VsScript vcvars64.bat;
-<#
-	cl /MD /$O /c /DLUA_BUILD_AS_DLL *.c
-	ren lua.obj lua.o
-	ren luac.obj luac.o
-	ren wmain.obj wmain.o
-	link /DLL /IMPLIB:lua5.4.4.lib /OUT:lua5.4.4.dll *.obj
-	link /OUT:lua.exe lua.o lua5.4.4.lib
-	lib /OUT:lua5.4.4-static.lib *.obj
-	link /OUT:luac.exe luac.o lua5.4.4-static.lib
-#>
 	echo 'using MSVC compiler';
 	echo 'start build .c files';
-	cl /MD /$O /c /DLUA_BUILD_AS_DLL *.c
-	ren lua.obj lua.o
-	ren luac.obj luac.o
+	cl /MD /$O /c /DLUA_BUILD_AS_DLL *.c | Out-Null;
+	ren lua.obj lua.o;
+	ren luac.obj luac.o;
+	ren wmain.obj wmain.o;
 	echo "start build lua$LUA_VERSION_NAME.dll and lua$LUA_VERSION_NAME.lib";
-	link /DLL /IMPLIB:lua$LUA_VERSION_NAME.lib /OUT:lua$LUA_VERSION_NAME.dll *.obj
-	#cl /$O lapi.c lcode.c lctype.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c lobject.c lopcodes.c lparser.c lstate.c lstring.c ltable.c ltm.c lundump.c lvm.c lzio.c lauxlib.c lbaselib.c lcorolib.c ldblib.c liolib.c lmathlib.c loadlib.c loslib.c lstrlib.c ltablib.c lutf8lib.c linit.c /link /dll /out:lua$LUA_VERSION_NAME.dll | Out-Null;
+	link /DLL /IMPLIB:lua$LUA_VERSION_NAME.lib /OUT:lua$LUA_VERSION_NAME.dll *.obj | Out-Null;
 	echo "start build lua$LUA_VERSION_NAME-static.lib";
-	lib /OUT:lua$LUA_VERSION_NAME-static.lib *.obj
-	#cl /$O /c lapi.c lcode.c lctype.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c lobject.c lopcodes.c lparser.c lstate.c lstring.c ltable.c ltm.c lundump.c lvm.c lzio.c lauxlib.c lbaselib.c lcorolib.c ldblib.c liolib.c lmathlib.c loadlib.c loslib.c lstrlib.c ltablib.c lutf8lib.c linit.c | Out-Null;
-	#lib /$O /out:lua$LUA_VERSION_NAME.lib lapi.obj lcode.obj lctype.obj ldebug.obj ldo.obj ldump.obj lfunc.obj lgc.obj llex.obj lmem.obj lobject.obj lopcodes.obj lparser.obj lstate.obj lstring.obj ltable.obj ltm.obj lundump.obj lvm.obj lzio.obj lauxlib.obj lbaselib.obj lcorolib.obj ldblib.obj liolib.obj lmathlib.obj loadlib.obj loslib.obj lstrlib.obj ltablib.obj lutf8lib.obj linit.obj | Out-Null;
-	#cp lua$LUA_VERSION_NAME.lib liblua$LUA_VERSION_NAME.a;
+	lib /OUT:lua$LUA_VERSION_NAME-static.lib *.obj | Out-Null;
 	echo "start build lua$LUA_VERSION_NAME.exe";
-	link /subsystem:console /OUT:lua.exe lua.o lua$LUA_VERSION_NAME.lib
-	#cl /$O lua$LUA_VERSION_NAME.lib lua.c /link /subsystem:console /defaultlib:shell32.lib /defaultlib:user32.lib /defaultlib:kernel32.lib /out:lua$LUA_VERSION_NAME.exe | Out-Null;
+	if($IS_DYNAMIC_OR_STATIC -eq 'dynamic'){
+		link /subsystem:console /OUT:lua$LUA_VERSION_NAME.exe lua.o lua$LUA_VERSION_NAME.lib | Out-Null;	
+	}
+	elseif($IS_DYNAMIC_OR_STATIC -eq 'static'){
+		link /subsystem:console /OUT:lua$LUA_VERSION_NAME.exe lua.o lua$LUA_VERSION_NAME-static.lib | Out-Null;
+	}
 	echo "start build wlua$LUA_VERSION_NAME.exe";
-	link /subsystem:windows /OUT:luac.exe lua.o wmain.o lua$LUA_VERSION_NAME.lib
-	#cl /$O lua$LUA_VERSION_NAME.lib lua.c wmain.c /link /subsystem:windows /defaultlib:shell32.lib /defaultlib:user32.lib /defaultlib:kernel32.lib /out:wlua$LUA_VERSION_NAME.exe | Out-Null;
+	if($IS_DYNAMIC_OR_STATIC -eq 'dynamic'){
+		link /subsystem:windows /defaultlib:shell32.lib /OUT:wlua$LUA_VERSION_NAME.exe lua.o wmain.o lua$LUA_VERSION_NAME.lib | Out-Null;	
+	}
+	elseif($IS_DYNAMIC_OR_STATIC -eq 'static'){
+		link /subsystem:windows /defaultlib:shell32.lib /OUT:wlua$LUA_VERSION_NAME.exe lua.o wmain.o lua$LUA_VERSION_NAME-static.lib | Out-Null;
+	}
 	echo "start build luac$LUA_VERSION_NAME.exe";
-	link /subsystem:console /OUT:luac.exe luac.o lua$LUA_VERSION_NAME.lib
-	#cl /$O lua$LUA_VERSION_NAME.lib luac.c /link /subsystem:console /defaultlib:shell32.lib /defaultlib:user32.lib /defaultlib:kernel32.lib  /out:luac$LUA_VERSION_NAME.exe | Out-Null;
+	link /subsystem:console /OUT:luac$LUA_VERSION_NAME.exe luac.o lua$LUA_VERSION_NAME-static.lib | Out-Null;
 	echo 'finish build';
 	RestartEnv;
 } elseif ($COMPILER -eq 'llvm'){
@@ -308,6 +302,8 @@ if (Test-Path -Path lua$LUA_VERSION_NAME.dll -PathType Leaf) {
 	rm lua$LUA_VERSION_NAME.dll;
 } if (Test-Path -Path lua$LUA_VERSION_NAME.lib -PathType Leaf) {
 	rm lua$LUA_VERSION_NAME.lib;
+} if (Test-Path -Path lua$LUA_VERSION_NAME-static.lib -PathType Leaf) {
+	rm lua$LUA_VERSION_NAME-static.lib;
 } if (Test-Path -Path liblua$LUA_VERSION_NAME.a -PathType Leaf) {
 	rm liblua$LUA_VERSION_NAME.a;
 } if (Test-Path -Path lua$LUA_VERSION_NAME.exe -PathType Leaf) {
@@ -317,12 +313,22 @@ if (Test-Path -Path lua$LUA_VERSION_NAME.dll -PathType Leaf) {
 } if (Test-Path -Path wlua$LUA_VERSION_NAME.exe -PathType Leaf) {
 	rm wlua$LUA_VERSION_NAME.exe;
 }
-mv lua-$LUA_VERSION\src\lua$LUA_VERSION_NAME.dll lua$LUA_VERSION_NAME.dll;
-mv lua-$LUA_VERSION\src\lua$LUA_VERSION_NAME.lib lua$LUA_VERSION_NAME.lib;
-mv lua-$LUA_VERSION\src\liblua$LUA_VERSION_NAME.a liblua$LUA_VERSION_NAME.a;
-mv lua-$LUA_VERSION\src\lua$LUA_VERSION_NAME.exe lua$LUA_VERSION_NAME.exe;
-mv lua-$LUA_VERSION\src\luac$LUA_VERSION_NAME.exe luac$LUA_VERSION_NAME.exe;
-mv lua-$LUA_VERSION\src\wlua$LUA_VERSION_NAME.exe wlua$LUA_VERSION_NAME.exe;
+
+if (Test-Path -Path lua-$LUA_VERSION\src\lua$LUA_VERSION_NAME.dll -PathType Leaf) {
+	mv lua-$LUA_VERSION\src\lua$LUA_VERSION_NAME.dll lua$LUA_VERSION_NAME.dll;
+} if (Test-Path -Path lua-$LUA_VERSION\src\lua$LUA_VERSION_NAME.lib -PathType Leaf) {
+	mv lua-$LUA_VERSION\src\lua$LUA_VERSION_NAME.lib lua$LUA_VERSION_NAME.lib;
+} if (Test-Path -Path lua-$LUA_VERSION\src\lua$LUA_VERSION_NAME-static.lib -PathType Leaf) {
+	mv lua-$LUA_VERSION\src\lua$LUA_VERSION_NAME-static.lib lua$LUA_VERSION_NAME-static.lib;
+} if (Test-Path -Path lua-$LUA_VERSION\src\liblua$LUA_VERSION_NAME.a -PathType Leaf) {
+	mv lua-$LUA_VERSION\src\liblua$LUA_VERSION_NAME.a liblua$LUA_VERSION_NAME.a;
+} if (Test-Path -Path lua-$LUA_VERSION\src\lua$LUA_VERSION_NAME.exe -PathType Leaf) {
+	mv lua-$LUA_VERSION\src\lua$LUA_VERSION_NAME.exe lua$LUA_VERSION_NAME.exe;
+} if (Test-Path -Path lua-$LUA_VERSION\src\luac$LUA_VERSION_NAME.exe -PathType Leaf) {
+	mv lua-$LUA_VERSION\src\luac$LUA_VERSION_NAME.exe luac$LUA_VERSION_NAME.exe;
+} if (Test-Path -Path lua-$LUA_VERSION\src\wlua$LUA_VERSION_NAME.exe -PathType Leaf) {
+	mv lua-$LUA_VERSION\src\wlua$LUA_VERSION_NAME.exe wlua$LUA_VERSION_NAME.exe;
+}
 rm -r lua-$LUA_VERSION;
 rm -r lua-$LUA_VERSION.tar.gz;
 
