@@ -228,7 +228,7 @@ if ($COMPILER -eq 'msvc'){
 		$O = 'Oz'
 	}
 	echo 'using LLVM compiler';
-
+	echo 'start build .c files';
 	clang -MD -$O -c -DLUA_BUILD_AS_DLL *.c | Out-Null;
 	ren lua.o lua.obj;
 	ren luac.o luac.obj;
@@ -239,40 +239,20 @@ if ($COMPILER -eq 'msvc'){
 	llvm-ar -rcs lua$LUA_VERSION_NAME-static.lib *.o | Out-Null;
 	echo "start build lua$LUA_VERSION_NAME.exe";
 	if($IS_DYNAMIC_OR_STATIC -eq 'dynamic'){
-		#link /subsystem:console /OUT:lua$LUA_VERSION_NAME.exe lua.o lua$LUA_VERSION_NAME.lib | Out-Null;	
 		clang -$O -DNDEBUG -static lua$LUA_VERSION_NAME.lib lua.obj -$('Wl,-subsystem:console') -o lua$LUA_VERSION_NAME.exe | Out-Null;
 	}
 	elseif($IS_DYNAMIC_OR_STATIC -eq 'static'){
-		#link /subsystem:console /OUT:lua$LUA_VERSION_NAME.exe lua.o lua$LUA_VERSION_NAME-static.lib | Out-Null;
 		clang -$O -DNDEBUG -static lua$LUA_VERSION_NAME-static.lib lua.obj -$('Wl,-subsystem:console') -o lua$LUA_VERSION_NAME.exe | Out-Null;
 	}
 	echo "start build wlua$LUA_VERSION_NAME.exe";
 	if($IS_DYNAMIC_OR_STATIC -eq 'dynamic'){
-		#link /subsystem:windows /defaultlib:shell32.lib /OUT:wlua$LUA_VERSION_NAME.exe lua.o wmain.o lua$LUA_VERSION_NAME.lib | Out-Null;	
 		clang -$O -DNDEBUG -static lua$LUA_VERSION_NAME.lib lua.obj wmain.obj -$('Wl,-subsystem:windows') -$('Wl,-defaultlib:shell32.lib') -o wlua$LUA_VERSION_NAME.exe | Out-Null;
 	}
 	elseif($IS_DYNAMIC_OR_STATIC -eq 'static'){
-		#link /subsystem:windows /defaultlib:shell32.lib /OUT:wlua$LUA_VERSION_NAME.exe lua.o wmain.o lua$LUA_VERSION_NAME-static.lib | Out-Null;
 		clang -$O -DNDEBUG -static lua$LUA_VERSION_NAME-static.lib lua.obj wmain.obj -$('Wl,-subsystem:windows') -$('Wl,-defaultlib:shell32.lib') -o wlua$LUA_VERSION_NAME.exe | Out-Null;
 	}
 	echo "start build luac$LUA_VERSION_NAME.exe";
-	#link /subsystem:console /OUT:luac$LUA_VERSION_NAME.exe luac.o lua$LUA_VERSION_NAME-static.lib | Out-Null;
 	clang -$O -DNDEBUG -static lua$LUA_VERSION_NAME-static.lib luac.obj -$('Wl,-subsystem:console') -o luac$LUA_VERSION_NAME.exe | Out-Null;
-
-	<#
-	echo "start build lua$LUA_VERSION_NAME.dll";
-	clang -$O -DNDEBUG -static lapi.c lcode.c lctype.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c lobject.c lopcodes.c lparser.c lstate.c lstring.c ltable.c ltm.c lundump.c lvm.c lzio.c lauxlib.c lbaselib.c lcorolib.c ldblib.c liolib.c lmathlib.c loadlib.c loslib.c lstrlib.c ltablib.c lutf8lib.c linit.c -shared -o lua$LUA_VERSION_NAME.dll;
-	echo "start build lua$LUA_VERSION_NAME.lib and liblua$LUA_VERSION_NAME.a";
-	clang -$O -DNDEBUG -c lapi.c lcode.c lctype.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c lobject.c lopcodes.c lparser.c lstate.c lstring.c ltable.c ltm.c lundump.c lvm.c lzio.c lauxlib.c lbaselib.c lcorolib.c ldblib.c liolib.c lmathlib.c loadlib.c loslib.c lstrlib.c ltablib.c lutf8lib.c linit.c;
-	llvm-ar -rcs lua$LUA_VERSION_NAME.lib lapi.o lcode.o lctype.o ldebug.o ldo.o ldump.o lfunc.o lgc.o llex.o lmem.o lobject.o lopcodes.o lparser.o lstate.o lstring.o ltable.o ltm.o lundump.o lvm.o lzio.o lauxlib.o lbaselib.o lcorolib.o ldblib.o liolib.o lmathlib.o loadlib.o loslib.o lstrlib.o ltablib.o lutf8lib.o linit.o;
-	cp lua$LUA_VERSION_NAME.lib liblua$LUA_VERSION_NAME.a;
-	echo "start build lua$LUA_VERSION_NAME.exe";
-	clang -$O -DNDEBUG -static lua$LUA_VERSION_NAME.lib lua.c -$('Wl,-subsystem:console') -$('Wl,-defaultlib:shell32.lib') -$('Wl,-defaultlib:user32.lib') -$('Wl,-defaultlib:kernel32.lib') -o lua$LUA_VERSION_NAME.exe;
-	echo "start build wlua$LUA_VERSION_NAME.exe";
-	clang -$O -DNDEBUG -static lua$LUA_VERSION_NAME.lib lua.c wmain.c -$('Wl,-subsystem:windows') -$('Wl,-defaultlib:shell32.lib') -$('Wl,-defaultlib:user32.lib') -$('Wl,-defaultlib:kernel32.lib') -o wlua$LUA_VERSION_NAME.exe;
-	echo "start build luac$LUA_VERSION_NAME.exe";
-	clang -$O -DNDEBUG -static lua$LUA_VERSION_NAME.lib luac.c -$('Wl,-subsystem:console') -$('Wl,-defaultlib:shell32.lib') -$('Wl,-defaultlib:user32.lib') -$('Wl,-defaultlib:kernel32.lib') -o luac$LUA_VERSION_NAME.exe;
-	#>
 	echo 'finish build';
 } elseif ($COMPILER -eq 'gnu'){
 	if($OPTIMIZE -eq 'default'){
