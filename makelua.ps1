@@ -189,19 +189,38 @@ if ($COMPILER -eq 'msvc'){
 	}
 	
 	Invoke-VsScript vcvars64.bat;
+<#
+	cl /MD /$O /c /DLUA_BUILD_AS_DLL *.c
+	ren lua.obj lua.o
+	ren luac.obj luac.o
+	ren wmain.obj wmain.o
+	link /DLL /IMPLIB:lua5.4.4.lib /OUT:lua5.4.4.dll *.obj
+	link /OUT:lua.exe lua.o lua5.4.4.lib
+	lib /OUT:lua5.4.4-static.lib *.obj
+	link /OUT:luac.exe luac.o lua5.4.4-static.lib
+#>
 	echo 'using MSVC compiler';
-	echo "start build lua$LUA_VERSION_NAME.dll";
-	cl /$O lapi.c lcode.c lctype.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c lobject.c lopcodes.c lparser.c lstate.c lstring.c ltable.c ltm.c lundump.c lvm.c lzio.c lauxlib.c lbaselib.c lcorolib.c ldblib.c liolib.c lmathlib.c loadlib.c loslib.c lstrlib.c ltablib.c lutf8lib.c linit.c /link /dll /out:lua$LUA_VERSION_NAME.dll | Out-Null;
-	echo "start build lua$LUA_VERSION_NAME.lib and liblua$LUA_VERSION_NAME.a";
-	cl /$O /c lapi.c lcode.c lctype.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c lobject.c lopcodes.c lparser.c lstate.c lstring.c ltable.c ltm.c lundump.c lvm.c lzio.c lauxlib.c lbaselib.c lcorolib.c ldblib.c liolib.c lmathlib.c loadlib.c loslib.c lstrlib.c ltablib.c lutf8lib.c linit.c | Out-Null;
-	lib /$O /out:lua$LUA_VERSION_NAME.lib lapi.obj lcode.obj lctype.obj ldebug.obj ldo.obj ldump.obj lfunc.obj lgc.obj llex.obj lmem.obj lobject.obj lopcodes.obj lparser.obj lstate.obj lstring.obj ltable.obj ltm.obj lundump.obj lvm.obj lzio.obj lauxlib.obj lbaselib.obj lcorolib.obj ldblib.obj liolib.obj lmathlib.obj loadlib.obj loslib.obj lstrlib.obj ltablib.obj lutf8lib.obj linit.obj | Out-Null;
-	cp lua$LUA_VERSION_NAME.lib liblua$LUA_VERSION_NAME.a;
+	echo 'start build .c files';
+	cl /MD /$O /c /DLUA_BUILD_AS_DLL *.c
+	ren lua.obj lua.o
+	ren luac.obj luac.o
+	echo "start build lua$LUA_VERSION_NAME.dll and lua$LUA_VERSION_NAME.lib";
+	link /DLL /IMPLIB:lua$LUA_VERSION_NAME.lib /OUT:lua$LUA_VERSION_NAME.dll *.obj
+	#cl /$O lapi.c lcode.c lctype.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c lobject.c lopcodes.c lparser.c lstate.c lstring.c ltable.c ltm.c lundump.c lvm.c lzio.c lauxlib.c lbaselib.c lcorolib.c ldblib.c liolib.c lmathlib.c loadlib.c loslib.c lstrlib.c ltablib.c lutf8lib.c linit.c /link /dll /out:lua$LUA_VERSION_NAME.dll | Out-Null;
+	echo "start build lua$LUA_VERSION_NAME-static.lib";
+	lib /OUT:lua$LUA_VERSION_NAME-static.lib *.obj
+	#cl /$O /c lapi.c lcode.c lctype.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c lobject.c lopcodes.c lparser.c lstate.c lstring.c ltable.c ltm.c lundump.c lvm.c lzio.c lauxlib.c lbaselib.c lcorolib.c ldblib.c liolib.c lmathlib.c loadlib.c loslib.c lstrlib.c ltablib.c lutf8lib.c linit.c | Out-Null;
+	#lib /$O /out:lua$LUA_VERSION_NAME.lib lapi.obj lcode.obj lctype.obj ldebug.obj ldo.obj ldump.obj lfunc.obj lgc.obj llex.obj lmem.obj lobject.obj lopcodes.obj lparser.obj lstate.obj lstring.obj ltable.obj ltm.obj lundump.obj lvm.obj lzio.obj lauxlib.obj lbaselib.obj lcorolib.obj ldblib.obj liolib.obj lmathlib.obj loadlib.obj loslib.obj lstrlib.obj ltablib.obj lutf8lib.obj linit.obj | Out-Null;
+	#cp lua$LUA_VERSION_NAME.lib liblua$LUA_VERSION_NAME.a;
 	echo "start build lua$LUA_VERSION_NAME.exe";
-	cl /$O lua$LUA_VERSION_NAME.lib lua.c /link /subsystem:console /defaultlib:shell32.lib /defaultlib:user32.lib /defaultlib:kernel32.lib /out:lua$LUA_VERSION_NAME.exe | Out-Null;
-	echo "start build lua$LUA_VERSION_NAME.exe";
-	cl /$O lua$LUA_VERSION_NAME.lib lua.c wmain.c /link /subsystem:windows /defaultlib:shell32.lib /defaultlib:user32.lib /defaultlib:kernel32.lib /out:wlua$LUA_VERSION_NAME.exe | Out-Null;
+	link /subsystem:console /OUT:lua.exe lua.o lua$LUA_VERSION_NAME.lib
+	#cl /$O lua$LUA_VERSION_NAME.lib lua.c /link /subsystem:console /defaultlib:shell32.lib /defaultlib:user32.lib /defaultlib:kernel32.lib /out:lua$LUA_VERSION_NAME.exe | Out-Null;
+	echo "start build wlua$LUA_VERSION_NAME.exe";
+	link /subsystem:windows /OUT:luac.exe lua.o wmain.o lua$LUA_VERSION_NAME.lib
+	#cl /$O lua$LUA_VERSION_NAME.lib lua.c wmain.c /link /subsystem:windows /defaultlib:shell32.lib /defaultlib:user32.lib /defaultlib:kernel32.lib /out:wlua$LUA_VERSION_NAME.exe | Out-Null;
 	echo "start build luac$LUA_VERSION_NAME.exe";
-	cl /$O lua$LUA_VERSION_NAME.lib luac.c /link /subsystem:console /defaultlib:shell32.lib /defaultlib:user32.lib /defaultlib:kernel32.lib  /out:luac$LUA_VERSION_NAME.exe | Out-Null;
+	link /subsystem:console /OUT:luac.exe luac.o lua$LUA_VERSION_NAME.lib
+	#cl /$O lua$LUA_VERSION_NAME.lib luac.c /link /subsystem:console /defaultlib:shell32.lib /defaultlib:user32.lib /defaultlib:kernel32.lib  /out:luac$LUA_VERSION_NAME.exe | Out-Null;
 	echo 'finish build';
 	RestartEnv;
 } elseif ($COMPILER -eq 'llvm'){
