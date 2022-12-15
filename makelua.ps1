@@ -405,11 +405,10 @@ if (-not(Test-Path -Path lua.bat -PathType Leaf)) {
 if (-not(Test-Path -Path makelua.bat -PathType Leaf)) {
 	new-item makelua.bat;
 }
-set-content lua.bat "@call lua$LUA_VERSION_NAME %*";
-set-content luac.bat "@call luac$LUA_VERSION_NAME %*";
-set-content wlua.bat "@call wlua$LUA_VERSION_NAME %*";
-set-content makelua.bat "@SET mypath=%~dp0
-@call pwsh -file `"%mypath%\makelua.ps1`" %*";
+set-content lua.bat "@call `"%~dp0\lua$LUA_VERSION_NAME`" %*";
+set-content luac.bat "@call `"%~dp0\luac$LUA_VERSION_NAME`" %*";
+set-content wlua.bat "@call `"%~dp0\wlua$LUA_VERSION_NAME`" %*";
+set-content makelua.bat "@call pwsh -file `"%~dp0\\makelua.ps1`" %*";
 echo 'finish script';
 cd $CURRENT_PATH
 pause;
