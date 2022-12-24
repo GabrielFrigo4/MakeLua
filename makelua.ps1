@@ -34,7 +34,7 @@ $LUAROCKS_ROAMING_PATH = "$env:USERPROFILE\AppData\Roaming\luarocks";
 $LUAROCKS_LOCAL_PATH = "$env:USERPROFILE\AppData\Local\LuaRocks";
 $LUAROCKS_SYSTEM_PATH = 'C:\Program Files\luarocks';
 $MAKELUA_PATH = 'C:\Program Files\MakeLua';
-$MAKE_LUA_VERSION = '1.0.0';
+$MAKELUA_VERSION = '1.0.0';
 $LUA_VERSION_WEB = GetLuaVersionWeb;
 $LUAROCKS_VERSION_WEB = GetLuaRocksVersionWeb;
 
@@ -54,7 +54,7 @@ if(($args.Count -ge 1) -and ($Args[0] -eq 'help')){
 MakeLua info:
  - os: $CURRENT_OS
  - path: `"$SCRIPT_PATH`"
- - version: $MAKE_LUA_VERSION
+ - version: $MAKELUA_VERSION
 
 MakeLua uses:
  - powershell
@@ -101,6 +101,9 @@ if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
 if(($args.Count -ge 1 ) -and ($args[0] -eq 'install')){
 	if (-not(Test-Path -Path $MAKELUA_PATH)) {
 		mkdir $MAKELUA_PATH;
+	}
+	if (-not($MAKELUA_PATH -eq $SCRIPT_PATH)){
+		mv "$SCRIPT_PATH\makelua.ps1" "$MAKELUA_PATH\makelua.ps1"
 	}
 	cd $MAKELUA_PATH;
 	SetColor "Green";
