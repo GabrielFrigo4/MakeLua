@@ -91,10 +91,28 @@ MakeLua is a installer";
 	exit;
 }
 
+# get admin mode
+$IS_ADMIN = [bool](([System.Security.Principal.WindowsIdentity]::GetCurrent()).groups -match "S-1-5-32-544");
+if(-not $IS_ADMIN)
+{
+	$params = @{
+		FilePath = 'pwsh';
+		Verb = 'RunAs';
+		ArgumentList = @(
+			"-ExecutionPolicy ByPass";
+			"-File `"$PSCommandPath`"";
+			$Args;
+		);
+	};
+	Start-Process @params;
+	cd $CURRENT_PATH;
+	exit;
+}
+
 # makelua uninstall
 if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
 	cd /;
-sleep 5;
+	sleep 5;
 	if (Test-Path -Path $LUAROCKS_ROAMING_PATH) {
 		rm -r $LUAROCKS_ROAMING_PATH -Force;
 		EchoColor "remove $LUAROCKS_ROAMING_PATH successfully" 'Green';
@@ -148,23 +166,6 @@ if (Test-Path -Path $LUAROCKS_ROAMING_PATH) {
 }
 
 cd $SCRIPT_PATH;
-# get admin mode
-$IS_ADMIN = [bool](([System.Security.Principal.WindowsIdentity]::GetCurrent()).groups -match "S-1-5-32-544");
-if(-not $IS_ADMIN)
-{
-	$params = @{
-		FilePath = 'pwsh';
-		Verb = 'RunAs';
-		ArgumentList = @(
-			"-ExecutionPolicy ByPass";
-			"-File `"$PSCommandPath`"";
-			$Args;
-		);
-	};
-	Start-Process @params;
-	cd $CURRENT_PATH;
-	exit;
-}
 
 # makelua install options: (link, compiler, optimize, lua_version, luarocks_version)
 if(($args.Count -ge 1 ) -and ($args[0] -eq 'install')){
