@@ -94,24 +94,6 @@ MakeLua is a installer";
 	exit;
 }
 
-# get admin mode
-$IS_ADMIN = [bool](([System.Security.Principal.WindowsIdentity]::GetCurrent()).groups -match "S-1-5-32-544");
-if(-not $IS_ADMIN)
-{
-    $params = @{
-        FilePath = 'pwsh'
-        Verb = 'RunAs'
-        ArgumentList = @(
-            "-ExecutionPolicy ByPass";
-            "-File `"$PSCommandPath`"";
-			$Args;
-        );
-    }
-    Start-Process @params;
-	cd $CURRENT_PATH;
-    exit;
-}
-
 # makelua uninstall
 if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
 	cd ..;
@@ -125,13 +107,42 @@ if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
 		rm -r $LUAROCKS_SYSTEM_PATH -Force;
 		EchoColor "remove $LUAROCKS_SYSTEM_PATH successfully" 'Green';
 	} if (Test-Path -Path $MAKELUA_PATH) {
-		pwsh -c "rm -r `"$MAKELUA_PATH`" -Force";
+		$params = @{
+			FilePath = 'pwsh';
+			Verb = 'RunAs';
+			ArgumentList = @(
+				"-c";
+				"`"sleep 0.01 && rm -r `"$MAKELUA_PATH`" -Force`"";
+			);
+		};
+		Start-Process @params;
+		exit;
+		#pwsh -c "sleep 0.01 && rm -r `"$MAKELUA_PATH`" -Force";
+		#exit;
 		#rm -r $MAKELUA_PATH -Force;
 		#Remove-Item -LiteralPath $MAKELUA_PATH -Recurse -Force
 		EchoColor "remove $MAKELUA_PATH successfully" 'Green';
 	}
 	pause;
 	exit;
+}
+
+# get admin mode
+$IS_ADMIN = [bool](([System.Security.Principal.WindowsIdentity]::GetCurrent()).groups -match "S-1-5-32-544");
+if(-not $IS_ADMIN)
+{
+    $params = @{
+        FilePath = 'pwsh';
+        Verb = 'RunAs';
+        ArgumentList = @(
+            "-ExecutionPolicy ByPass";
+            "-File `"$PSCommandPath`"";
+			$Args;
+        );
+    };
+    Start-Process @params;
+	cd $CURRENT_PATH;
+    exit;
 }
 
 # makelua install options: (link, compiler, optimize, lua_version, luarocks_version)
