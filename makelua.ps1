@@ -96,7 +96,7 @@ MakeLua is a installer";
 
 # makelua uninstall
 if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
-	cd ..;
+	Set-Location ..;
 	if (Test-Path -Path $LUAROCKS_ROAMING_PATH) {
 		rm -r $LUAROCKS_ROAMING_PATH -Force;
 		EchoColor "remove $LUAROCKS_ROAMING_PATH successfully" 'Green';
@@ -107,22 +107,18 @@ if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
 		rm -r $LUAROCKS_SYSTEM_PATH -Force;
 		EchoColor "remove $LUAROCKS_SYSTEM_PATH successfully" 'Green';
 	} if (Test-Path -Path $MAKELUA_PATH) {
-		$params = @{
-			FilePath = 'pwsh';
-			Verb = 'RunAs';
-			ArgumentList = @(
-				"-c";
-				"sleep 0.01 && rm -r `"$MAKELUA_PATH`" -Force && pause";
-			);
-		};
-		Start-Process @params;
-		exit;
-		#pwsh -c "sleep 0.01 && rm -r `"$MAKELUA_PATH`" -Force";
-		#exit;
-		#rm -r $MAKELUA_PATH -Force;
-		#Remove-Item -LiteralPath $MAKELUA_PATH -Recurse -Force
+		While ( Test-Path($yourFileDir) ){
+			Try {
+				rm -r $MAKELUA_PATH -Force -ErrorAction Stop;
+			} catch {
+				Write-Verbose "File locked, trying again in 5";
+				Start-Sleep -seconds 5;
+			}
+		}
+		# rm -r $MAKELUA_PATH -Force;
 		EchoColor "remove $MAKELUA_PATH successfully" 'Green';
 	}
+	cd $CURRENT_PATH;
 	pause;
 	exit;
 }
