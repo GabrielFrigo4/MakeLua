@@ -114,7 +114,7 @@ if(-not $IS_ADMIN)
 
 # makelua uninstall
 if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
-	cd '/';
+	cd ..;
 	if (Test-Path -Path $LUAROCKS_ROAMING_PATH) {
 		rm -r $LUAROCKS_ROAMING_PATH -Force;
 		EchoColor "remove $LUAROCKS_ROAMING_PATH successfully" 'Green';
@@ -125,7 +125,8 @@ if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
 		rm -r $LUAROCKS_SYSTEM_PATH -Force;
 		EchoColor "remove $LUAROCKS_SYSTEM_PATH successfully" 'Green';
 	} if (Test-Path -Path $MAKELUA_PATH) {
-		rm -r $MAKELUA_PATH -Force;
+		#rm -r $MAKELUA_PATH -Force;
+		Remove-Item -LiteralPath $MAKELUA_PATH -Recurse -Force
 		EchoColor "remove $MAKELUA_PATH successfully" 'Green';
 	}
 	pause;
