@@ -116,18 +116,15 @@ if(-not $IS_ADMIN)
 if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
 	cd '/';
 	if (Test-Path -Path $LUAROCKS_ROAMING_PATH) {
-		rm -r $LUAROCKS_ROAMING_PATH;
+		rm -r $LUAROCKS_ROAMING_PATH -Force;
 		EchoColor "remove $LUAROCKS_ROAMING_PATH successfully" 'Green';
 	} if (Test-Path -Path $LUAROCKS_LOCAL_PATH) {
-		rm -r $LUAROCKS_LOCAL_PATH;
+		rm -r $LUAROCKS_LOCAL_PATH -Force;
 		EchoColor "remove $LUAROCKS_LOCAL_PATH successfully" 'Green';
 	} if (Test-Path -Path $LUAROCKS_SYSTEM_PATH) {
-		rm -r $LUAROCKS_SYSTEM_PATH;
+		rm -r $LUAROCKS_SYSTEM_PATH -Force;
 		EchoColor "remove $LUAROCKS_SYSTEM_PATH successfully" 'Green';
 	} if (Test-Path -Path $MAKELUA_PATH) {
-		#if (Test-Path -Path "$MAKELUA_PATH\hidden-RO-.git") {
-		#	Get-ChildItem -Path "$MAKELUA_PATH" -Hidden -Recurse | Remove-Item -Force
-		#}
 		rm -r $MAKELUA_PATH -Force;
 		EchoColor "remove $MAKELUA_PATH successfully" 'Green';
 	}
