@@ -58,7 +58,8 @@ if (-not(Test-Path -Path $MAKELUA_LOCAL_PATH)) {
 	mkdir $MAKELUA_ROAMING_PATH | Out-Null;
 }
 
-cd $MAKELUA_ROAMING_PATH;
+cd $MAKELUA_PATH;
+cd ..;
 
 # makelua noone arg
 if($args.Count -eq 0){
