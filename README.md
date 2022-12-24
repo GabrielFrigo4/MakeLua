@@ -3,7 +3,8 @@ MakeLua is a installer lua in windows
  - to update luarocks version use: "sudo luarocks config --scope system lua_version 5.4"
  - to ser var in luarocks use: "luarocks config variables.VAR_NAME VAR_VALUE"
 
-In linux to get all lua pkgs use this commands (.deb):
+# In linux
+(dpkg) to get lua and luarocks use:
 
     echo "Installing Lua"
     wget http://ftp.br.debian.org/debian/pool/main/l/lua5.4/liblua5.4-0_5.4.4-3_amd64.deb
@@ -21,7 +22,7 @@ In linux to get all lua pkgs use this commands (.deb):
     echo "Lua Installed"
 
 
-or build lua (make):
+(make) to get lua and luarocks use:
 
     # install lua-essential
     export LUA_VER=5.4
