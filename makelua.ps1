@@ -70,15 +70,16 @@ MakeLua info:
  - version: $MAKELUA_VERSION
 
 MakeLua uses:
- - powershell
+ - powershell 7 or greater
  - msvc or llvm or gnu
  - curl
  - tar
  - 7z
 
 MakeLua options: (help / install)
- - help: show inf
+ - help: show help information (this)
  - install: install lua and luarocks
+ - uninstall: uninstall lua and luarocks
 
 MakeLua install options: (link, compiler, optimize, lua_version, luarocks_version)
  - link: dynamic static
@@ -89,6 +90,7 @@ MakeLua install options: (link, compiler, optimize, lua_version, luarocks_versio
 
 to install use `"makelua dynamic msvc default $LUA_VERSION $LUAROCKS_VERSION`"
 MakeLua is a installer";
+	cd $CURRENT_PATH;
 	exit;
 }
 
@@ -100,6 +102,7 @@ if(-not $IS_ADMIN)
         FilePath = 'pwsh'
         Verb = 'RunAs'
         ArgumentList = @(
+			"-NoExit";
             "-ExecutionPolicy ByPass";
             "-File `"$PSCommandPath`"";
 			$Args;
@@ -477,5 +480,5 @@ set-content luac.bat "@call `"%~dp0\luac$LUA_VERSION_NAME`" %*";
 set-content wlua.bat "@call `"%~dp0\wlua$LUA_VERSION_NAME`" %*";
 set-content makelua.bat "@call pwsh -file `"%~dp0\\makelua.ps1`" %*";
 echo 'finish script';
-cd $CURRENT_PATH
+cd $CURRENT_PATH;
 pause;
