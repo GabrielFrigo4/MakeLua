@@ -45,10 +45,8 @@ if($args.Count -eq 0){
 
 # makelua help
 if(($args.Count -ge 1) -and ($Args[0] -eq 'help')){
-	$LUA_VERSION_WEB = GetLuaVersionWeb;
-	$LUAROCKS_VERSION_WEB = GetLuaRocksVersionWeb;
-	$LUA_VERSION = $LUA_VERSION_WEB;
-	$LUAROCKS_VERSION = $LUAROCKS_VERSION_WEB;
+	$LUA_VERSION = GetLuaVersionWeb;
+	$LUAROCKS_VERSION = GetLuaRocksVersionWeb;
 	Write-Host "|MAKE_LUA HELP|
 	
 MakeLua info:
@@ -119,8 +117,6 @@ if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
 
 # makelua install options: (link, compiler, optimize, lua_version, luarocks_version)
 if(($args.Count -ge 1 ) -and ($args[0] -eq 'install')){
-	$LUA_VERSION_WEB = GetLuaVersionWeb;
-	$LUAROCKS_VERSION_WEB = GetLuaRocksVersionWeb;
 	if (-not(Test-Path -Path $MAKELUA_PATH)) {
 		mkdir $MAKELUA_PATH;
 	}
@@ -152,13 +148,13 @@ if(($args.Count -ge 1 ) -and ($args[0] -eq 'install')){
 	if($args.Count -ge 5){
 		$LUA_VERSION = $Args[3] -as [string]; #lua version
 	} else {
-		$LUA_VERSION = $LUA_VERSION_WEB;
+		$LUA_VERSION = GetLuaVersionWeb;
 		echo " - lua_version: $LUA_VERSION";
 	} 
 	if($args.Count -ge 6){
 		$LUAROCKS_VERSION = $Args[4] -as [string]; #luarocks version
 	} else {
-		$LUAROCKS_VERSION = $LUAROCKS_VERSION_WEB;
+		$LUAROCKS_VERSION = GetLuaRocksVersionWeb;
 		echo " - luarocks_version: $LUAROCKS_VERSION";
 	}
 	echo '';
