@@ -81,10 +81,20 @@ MakeLua is a installer";
 
 # makelua uninstall
 if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
-	Remove-Item -Path $LUAROCKS_ROAMING_PATH -Recurse -Force;
-	Remove-Item -Path $LUAROCKS_LOCAL_PATH -Recurse -Force;
-	Remove-Item -Path $LUAROCKS_SYSTEM_PATH -Recurse -Force;
-	Remove-Item -Path $MAKELUA_PATH -Recurse -Force;
+	if (Test-Path -Path $LUAROCKS_ROAMING_PATH) {
+		rm -r $LUAROCKS_ROAMING_PATH;
+		echo "remove $LUAROCKS_ROAMING_PATH successfully"
+	} if (Test-Path -Path $LUAROCKS_LOCAL_PATH) {
+		rm -r $LUAROCKS_LOCAL_PATH;
+		echo "remove $LUAROCKS_LOCAL_PATH successfully"
+	} if (Test-Path -Path $LUAROCKS_SYSTEM_PATH) {
+		rm -r $LUAROCKS_SYSTEM_PATH;
+		echo "remove $LUAROCKS_SYSTEM_PATH successfully"
+	} if (Test-Path -Path $MAKELUA_PATH) {
+		rm -r $MAKELUA_PATH;
+		echo "remove $MAKELUA_PATH successfully"
+	}
+	exit;
 }
 
 # makelua install options: (link, compiler, optimize, lua_version, luarocks_version)
