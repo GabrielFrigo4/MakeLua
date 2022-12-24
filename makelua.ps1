@@ -1,4 +1,4 @@
-# makelua use powershell
+# makelua use powershell 7 or greater
 # makelua use msvc or llvm or gnu
 # makelua use curl
 # makelua use tar
@@ -37,6 +37,7 @@ $MAKELUA_PATH = 'C:\Program Files\MakeLua';
 $MAKELUA_VERSION = '1.0.0';
 
 cd $SCRIPT_PATH;
+
 # makelua noone arg
 if($args.Count -eq 0){
 	Write-Host 'type: "makelua help" for more information';
@@ -79,8 +80,6 @@ MakeLua is a installer";
 
 # get admin mode
 $IS_ADMIN = [bool](([System.Security.Principal.WindowsIdentity]::GetCurrent()).groups -match "S-1-5-32-544");
-echo $PSCommandPath;
-# echo "is admin: $IS_ADMIN";
 if(-not $IS_ADMIN)
 {
     $params = @{
