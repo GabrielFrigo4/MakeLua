@@ -112,7 +112,7 @@ if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
 			Verb = 'RunAs';
 			ArgumentList = @(
 				"-c";
-				"`"sleep 0.01 && rm -r `"$MAKELUA_PATH`" -Force`"";
+				"sleep 0.01 && rm -r `"$MAKELUA_PATH`" -Force && pause";
 			);
 		};
 		Start-Process @params;
