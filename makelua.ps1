@@ -125,7 +125,10 @@ if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
 		rm -r $LUAROCKS_SYSTEM_PATH;
 		EchoColor "remove $LUAROCKS_SYSTEM_PATH successfully" 'Green';
 	} if (Test-Path -Path $MAKELUA_PATH) {
-		rm -r $MAKELUA_PATH;
+		#if (Test-Path -Path "$MAKELUA_PATH\hidden-RO-.git") {
+		#	Get-ChildItem -Path "$MAKELUA_PATH" -Hidden -Recurse | Remove-Item -Force
+		#}
+		rm -r $MAKELUA_PATH -Force;
 		EchoColor "remove $MAKELUA_PATH successfully" 'Green';
 	}
 	pause;
