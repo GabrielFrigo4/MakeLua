@@ -41,25 +41,35 @@ function GetLuaRocksVersionWeb{
 	return (Invoke-WebRequest -Uri $Link).links.href[9].Replace('luarocks-', '').Replace('-windows-64.zip', '') -as [string];
 }
 
+# informations
 $CURRENT_OS = (Get-CimInstance -ClassName CIM_OperatingSystem).Caption;
+$MAKELUA_VERSION = '1.1.0';
+# basic paths
 $CURRENT_PATH = pwd;
 $SCRIPT_PATH = $PSScriptRoot;
+$PROGAM_FILES_PATH = 'C:\Program Files';
+# luarocks paths
 $LUAROCKS_ROAMING_PATH = "$env:USERPROFILE\AppData\Roaming\luarocks";
 $LUAROCKS_LOCAL_PATH = "$env:USERPROFILE\AppData\Local\LuaRocks";
 $LUAROCKS_SYSTEM_PATH = 'C:\Program Files\luarocks';
+# makelua paths
 $MAKELUA_ROAMING_PATH = "$env:USERPROFILE\AppData\Roaming\MakeLua";
 $MAKELUA_LOCAL_PATH = "$env:USERPROFILE\AppData\Local\MakeLua";
 $MAKELUA_PATH = 'C:\Program Files\MakeLua';
-$MAKELUA_VERSION = '1.0.0';
 
-if (-not(Test-Path -Path $MAKELUA_LOCAL_PATH)) {
-	mkdir $MAKELUA_LOCAL_PATH | Out-Null;
-} if (-not(Test-Path -Path $MAKELUA_ROAMING_PATH)) {
+# create basic dirs
+if (-not(Test-Path -Path $MAKELUA_ROAMING_PATH)) {
 	mkdir $MAKELUA_ROAMING_PATH | Out-Null;
+} if (-not(Test-Path -Path $MAKELUA_LOCAL_PATH)) {
+	mkdir $MAKELUA_LOCAL_PATH | Out-Null;
+} if (-not(Test-Path -Path $LUAROCKS_ROAMING_PATH)) {
+	mkdir $LUAROCKS_ROAMING_PATH | Out-Null;
+} if (-not(Test-Path -Path $LUAROCKS_LOCAL_PATH)) {
+	mkdir $LUAROCKS_LOCAL_PATH | Out-Null;
 }
 
-cd $MAKELUA_PATH;
-cd ..;
+# go to default dir
+cd $PROGAM_FILES_PATH;
 
 # makelua noone arg
 if($args.Count -eq 0){
@@ -124,8 +134,7 @@ if(-not $IS_ADMIN)
 
 # makelua uninstall
 if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
-	cd $MAKELUA_PATH;
-	cd ..;
+	cd $PROGAM_FILES_PATH;
 	sleep 2;
 	if (Test-Path -Path $LUAROCKS_ROAMING_PATH) {
 		rm -r $LUAROCKS_ROAMING_PATH -Force;
@@ -153,6 +162,11 @@ if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
 
 # makelua install options: (link, compiler, optimize, lua_version, luarocks_version)
 if(($args.Count -ge 1 ) -and ($args[0] -eq 'install')){
+	#luarocks information dir
+	if (-not(Test-Path -Path $LUAROCKS_SYSTEM_PATH)) {
+		mkdir $LUAROCKS_SYSTEM_PATH | Out-Null;
+	}
+	# makelua dir
 	if (-not(Test-Path -Path $MAKELUA_PATH)) {
 		mkdir $MAKELUA_PATH;
 	}
@@ -209,7 +223,13 @@ if(($args.Count -ge 1 ) -and ($args[0] -eq 'install')){
 
 $LUA_VERSION_ARRAY = ($LUA_VERSION).Split('.');
 $LUA_VERSION_NAME = ($LUA_VERSION_ARRAY[0] + $LUA_VERSION_ARRAY[1]) -as [string];
-$LUAROCKS_CONFIG_FILE = "config-$LUA_VERSION.lua";
+$LUAROCKS_CONFIG_FILE = "config-$LUA_VERSION_NAME.lua";
+#luarocks information files
+if (-not(Test-Path -Path "$LUAROCKS_SYSTEM_PATH\$LUAROCKS_CONFIG_FILE" -PathType Leaf)) {
+	new-item "$LUAROCKS_SYSTEM_PATH\$LUAROCKS_CONFIG_FILE" | Out-Null;
+} if (-not(Test-Path -Path "$LUAROCKS_ROAMING_PATH\$LUAROCKS_CONFIG_FILE" -PathType Leaf)) {
+	new-item "$LUAROCKS_ROAMING_PATH\$LUAROCKS_CONFIG_FILE" | Out-Null;
+}
 echo "Lua Version: $LUA_VERSION";
 echo "LuaRocks Version: $LUAROCKS_VERSION";
 echo "Lua Version Name: $LUA_VERSION_NAME";
@@ -244,7 +264,7 @@ if (Test-Path -Path ./src) {
 	exit;
 }
 
-new-item wmain.c;
+new-item wmain.c | Out-Null;
 set-content wmain.c '#include <windows.h>
 #include <stdio.h>
 #include <shellapi.h>
@@ -452,7 +472,7 @@ echo 'start move and delete';
 if (Test-Path -Path ./include) {
 	rm -r include;
 }
-mkdir include;
+mkdir include | Out-Null;
 mv lua-$LUA_VERSION\src\lauxlib.h include\lauxlib.h;
 mv lua-$LUA_VERSION\src\lua.h include\lua.h;
 mv lua-$LUA_VERSION\src\lua.hpp include\lua.hpp;
@@ -495,13 +515,13 @@ rm -r lua-$LUA_VERSION.tar.gz;
 
 echo 'start create linker files';
 if (-not(Test-Path -Path lua.bat -PathType Leaf)) {
-	new-item lua.bat;
+	new-item lua.bat | Out-Null;
 } if (-not(Test-Path -Path luac.bat -PathType Leaf)) {
-	new-item luac.bat;
+	new-item luac.bat | Out-Null;
 } if (-not(Test-Path -Path wlua.bat -PathType Leaf)) {
-	new-item wlua.bat;
+	new-item wlua.bat | Out-Null;
 } if (-not(Test-Path -Path makelua.bat -PathType Leaf)) {
-	new-item makelua.bat;
+	new-item makelua.bat | Out-Null;
 }
 set-content lua.bat "@call `"%~dp0\lua$LUA_VERSION_NAME`" %*";
 set-content luac.bat "@call `"%~dp0\luac$LUA_VERSION_NAME`" %*";
