@@ -35,8 +35,6 @@ $LUAROCKS_LOCAL_PATH = "$env:USERPROFILE\AppData\Local\LuaRocks";
 $LUAROCKS_SYSTEM_PATH = 'C:\Program Files\luarocks';
 $MAKELUA_PATH = 'C:\Program Files\MakeLua';
 $MAKELUA_VERSION = '1.0.0';
-$LUA_VERSION_WEB = GetLuaVersionWeb;
-$LUAROCKS_VERSION_WEB = GetLuaRocksVersionWeb;
 
 cd $SCRIPT_PATH;
 # makelua noone arg
@@ -47,6 +45,8 @@ if($args.Count -eq 0){
 
 # makelua help
 if(($args.Count -ge 1) -and ($Args[0] -eq 'help')){
+	$LUA_VERSION_WEB = GetLuaVersionWeb;
+	$LUAROCKS_VERSION_WEB = GetLuaRocksVersionWeb;
 	$LUA_VERSION = $LUA_VERSION_WEB;
 	$LUAROCKS_VERSION = $LUAROCKS_VERSION_WEB;
 	Write-Host "|MAKE_LUA HELP|
@@ -79,6 +79,26 @@ MakeLua is a installer";
 	exit;
 }
 
+# get admin mode
+$IS_ADMIN = [bool](([System.Security.Principal.WindowsIdentity]::GetCurrent()).groups -match "S-1-5-32-544");
+echo $PSCommandPath;
+# echo "is admin: $IS_ADMIN";
+if(-not $IS_ADMIN)
+{
+    $params = @{
+        FilePath = 'pwsh'
+        Verb = 'RunAs'
+        ArgumentList = @(
+            "-ExecutionPolicy ByPass";
+            "-File `"$PSCommandPath`"";
+			$Args;
+        );
+    }
+    Start-Process @params;
+	cd $CURRENT_PATH;
+    exit;
+}
+
 # makelua uninstall
 if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
 	if (Test-Path -Path $LUAROCKS_ROAMING_PATH) {
@@ -99,6 +119,8 @@ if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
 
 # makelua install options: (link, compiler, optimize, lua_version, luarocks_version)
 if(($args.Count -ge 1 ) -and ($args[0] -eq 'install')){
+	$LUA_VERSION_WEB = GetLuaVersionWeb;
+	$LUAROCKS_VERSION_WEB = GetLuaRocksVersionWeb;
 	if (-not(Test-Path -Path $MAKELUA_PATH)) {
 		mkdir $MAKELUA_PATH;
 	}
