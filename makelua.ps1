@@ -30,6 +30,10 @@ function GetLuaRocksVersionWeb{
 $CURRENT_OS = (Get-CimInstance -ClassName CIM_OperatingSystem).Caption;
 $CURRENT_PATH = pwd;
 $SCRIPT_PATH = $PSScriptRoot;
+$LUAROCKS_ROAMING_PATH = "$env:USERPROFILE\AppData\Roaming\luarocks";
+$LUAROCKS_LOCAL_PATH = "$env:USERPROFILE\AppData\Local\LuaRocks";
+$LUAROCKS_SYSTEM_PATH = 'C:\Program Files\luarocks';
+$MAKELUA_PATH = 'C:\Program Files\MakeLua';
 $MAKE_LUA_VERSION = '1.0.0';
 $LUA_VERSION_WEB = GetLuaVersionWeb;
 $LUAROCKS_VERSION_WEB = GetLuaRocksVersionWeb;
@@ -75,8 +79,17 @@ MakeLua is a installer";
 	exit;
 }
 
-# makelua options: (link, compiler, optimize, lua_version, luarocks_version)
+# makelua uninstall
+if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
+	Remove-Item -Path $LUAROCKS_ROAMING_PATH -Recurse -Force;
+	Remove-Item -Path $LUAROCKS_LOCAL_PATH -Recurse -Force;
+	Remove-Item -Path $LUAROCKS_SYSTEM_PATH -Recurse -Force;
+	Remove-Item -Path $MAKELUA_PATH -Recurse -Force;
+}
+
+# makelua install options: (link, compiler, optimize, lua_version, luarocks_version)
 if(($args.Count -ge 1 ) -and ($args[0] -eq 'install')){
+	cd $MAKELUA_PATH;
 	SetColor "Green";
 	echo 'MakeLua Options Using:';
 	$ERR = $False;
@@ -119,6 +132,7 @@ if(($args.Count -ge 1 ) -and ($args[0] -eq 'install')){
 
 $LUA_VERSION_ARRAY = ($LUA_VERSION).Split('.');
 $LUA_VERSION_NAME = ($LUA_VERSION_ARRAY[0] + $LUA_VERSION_ARRAY[1]) -as [string];
+$LUAROCKS_CONFIG_FILE = "config-$LUA_VERSION.lua";
 echo "Lua Version: $LUA_VERSION";
 echo "LuaRocks Version: $LUAROCKS_VERSION";
 echo "Lua Version Name: $LUA_VERSION_NAME";
