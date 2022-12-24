@@ -17,6 +17,20 @@ function ResetColor{
 	$host.ui.RawUI.ForegroundColor = $T;
 }
 
+function EchoColor{
+	param(
+		[String] $echo,
+		[String] $color
+	)
+	SetColor $color;
+	echo $echo;
+	ResetColor;
+}
+
+function Newline{
+	echo '';
+}
+
 function GetLuaVersionWeb{
 	$Link = 'https://www.lua.org/ftp/';
 	return (Invoke-WebRequest -Uri $Link).links.href[14].Replace('lua-', '').Replace('.tar.gz', '') -as [string];
@@ -100,24 +114,16 @@ if(-not $IS_ADMIN)
 if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
 	if (Test-Path -Path $LUAROCKS_ROAMING_PATH) {
 		rm -r $LUAROCKS_ROAMING_PATH;
-		SetColor "Green"; 
-		echo "remove $LUAROCKS_ROAMING_PATH successfully";
-		ResetColor;
+		EchoColor "remove $LUAROCKS_ROAMING_PATH successfully" 'Green';
 	} if (Test-Path -Path $LUAROCKS_LOCAL_PATH) {
 		rm -r $LUAROCKS_LOCAL_PATH;
-		SetColor "Green";
-		echo "remove $LUAROCKS_LOCAL_PATH successfully";
-		ResetColor;
+		EchoColor "remove $LUAROCKS_LOCAL_PATH successfully" 'Green';
 	} if (Test-Path -Path $LUAROCKS_SYSTEM_PATH) {
 		rm -r $LUAROCKS_SYSTEM_PATH;
-		SetColor "Green";
-		echo "remove $LUAROCKS_SYSTEM_PATH successfully";
-		ResetColor;
+		EchoColor "remove $LUAROCKS_SYSTEM_PATH successfully" 'Green';
 	} if (Test-Path -Path $MAKELUA_PATH) {
 		rm -r $MAKELUA_PATH;
-		SetColor "Green";
-		echo "remove $MAKELUA_PATH successfully";
-		ResetColor;
+		EchoColor "remove $MAKELUA_PATH successfully" 'Green';
 	}
 	exit;
 }
@@ -131,41 +137,39 @@ if(($args.Count -ge 1 ) -and ($args[0] -eq 'install')){
 		mv "$SCRIPT_PATH\makelua.ps1" "$MAKELUA_PATH\makelua.ps1"
 	}
 	cd $MAKELUA_PATH;
-	SetColor "Green";
-	echo 'MakeLua Options Using:';
+	EchoColor 'MakeLua Options Using:' 'Green';
 	$ERR = $False;
 	if($args.Count -ge 2){
 		$IS_DYNAMIC_OR_STATIC = $Args[0] -as [string]; #dynamic static || link options	
 	} else {
 		$IS_DYNAMIC_OR_STATIC='dynamic';
-		echo " - link: $IS_DYNAMIC_OR_STATIC";
+		EchoColor " - link: $IS_DYNAMIC_OR_STATIC" 'Green';
 	}
 	if($args.Count -ge 3){
 		$COMPILER = $Args[1] -as [string]; #msvc llvm gnu || compiler options	
 	} else {
 		$COMPILER = 'msvc';
-		echo " - compiler: $COMPILER";
+		EchoColor " - compiler: $COMPILER" 'Green';
 	}
 	if($args.Count -ge 4){
 		$OPTIMIZE = $Args[2] -as [string]; #default size speed || optimize options	
 	} else {
 		$OPTIMIZE = 'default';
-		echo " - optimize: $OPTIMIZE";
+		EchoColor " - optimize: $OPTIMIZE" 'Green';
 	}
 	if($args.Count -ge 5){
 		$LUA_VERSION = $Args[3] -as [string]; #lua version
 	} else {
 		$LUA_VERSION = GetLuaVersionWeb;
-		echo " - lua_version: $LUA_VERSION";
+		EchoColor " - lua_version: $LUA_VERSION" 'Green';
 	} 
 	if($args.Count -ge 6){
 		$LUAROCKS_VERSION = $Args[4] -as [string]; #luarocks version
 	} else {
 		$LUAROCKS_VERSION = GetLuaRocksVersionWeb;
-		echo " - luarocks_version: $LUAROCKS_VERSION";
+		EchoColor " - luarocks_version: $LUAROCKS_VERSION" 'Green';
 	}
-	echo '';
-	ResetColor;
+	Newline;
 	if($ERR -eq $True){
 		exit;
 	}
