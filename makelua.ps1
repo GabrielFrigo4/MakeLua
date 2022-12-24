@@ -99,6 +99,9 @@ if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
 
 # makelua install options: (link, compiler, optimize, lua_version, luarocks_version)
 if(($args.Count -ge 1 ) -and ($args[0] -eq 'install')){
+	if (-not(Test-Path -Path $MAKELUA_PATH)) {
+		mkdir $MAKELUA_PATH;
+	}
 	cd $MAKELUA_PATH;
 	SetColor "Green";
 	echo 'MakeLua Options Using:';
