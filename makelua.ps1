@@ -50,8 +50,6 @@ $LUAROCKS_SYSTEM_PATH = 'C:\Program Files\luarocks';
 $MAKELUA_PATH = 'C:\Program Files\MakeLua';
 $MAKELUA_VERSION = '1.0.0';
 
-cd $SCRIPT_PATH;
-
 # makelua noone arg
 if($args.Count -eq 0){
 	Write-Host 'type: "makelua help" for more information';
@@ -90,31 +88,13 @@ MakeLua install options: (link, compiler, optimize, lua_version, luarocks_versio
 
 to install use `"makelua dynamic msvc default $LUA_VERSION $LUAROCKS_VERSION`"
 MakeLua is a installer";
-	cd $CURRENT_PATH;
 	exit;
-}
-
-# get admin mode
-$IS_ADMIN = [bool](([System.Security.Principal.WindowsIdentity]::GetCurrent()).groups -match "S-1-5-32-544");
-if(-not $IS_ADMIN)
-{
-    $params = @{
-        FilePath = 'pwsh';
-        Verb = 'RunAs';
-        ArgumentList = @(
-            "-ExecutionPolicy ByPass";
-            "-File `"$PSCommandPath`"";
-			$Args;
-        );
-    };
-    Start-Process @params;
-	cd $CURRENT_PATH;
-    exit;
 }
 
 # makelua uninstall
 if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
-	Set-Location ..;
+	cd /;
+sleep 5;
 	if (Test-Path -Path $LUAROCKS_ROAMING_PATH) {
 		rm -r $LUAROCKS_ROAMING_PATH -Force;
 		EchoColor "remove $LUAROCKS_ROAMING_PATH successfully" 'Green';
@@ -125,19 +105,64 @@ if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
 		rm -r $LUAROCKS_SYSTEM_PATH -Force;
 		EchoColor "remove $LUAROCKS_SYSTEM_PATH successfully" 'Green';
 	} if (Test-Path -Path $MAKELUA_PATH) {
-		While (Test-Path -Path $MAKELUA_PATH){
-			Try {
-				rm -r $MAKELUA_PATH -Force -ErrorAction Stop;
-			} catch {
-				Write-Verbose "File locked, trying again in 5";
-				Start-Sleep -seconds 5;
-			}
-		}
-		# rm -r $MAKELUA_PATH -Force;
+		rm -r $MAKELUA_PATH -Force;
 		EchoColor "remove $MAKELUA_PATH successfully" 'Green';
 	}
+$myCommand = "
+function SetColor{
+	param(
+		[String] $color
+	)
+	$host.ui.RawUI.ForegroundColor = $color;
+}
+
+function ResetColor{
+	$host.ui.RawUI.ForegroundColor = $T;
+}
+
+function EchoColor{
+	param(
+		[String] $echo,
+		[String] $color
+	)
+	SetColor $color;
+	echo $echo;
+	ResetColor;
+}
+
+if (Test-Path -Path $LUAROCKS_ROAMING_PATH) {
+	rm -r $LUAROCKS_ROAMING_PATH -Force;
+	EchoColor `"remove $LUAROCKS_ROAMING_PATH successfully`" 'Green';
+} if (Test-Path -Path $LUAROCKS_LOCAL_PATH) {
+	rm -r $LUAROCKS_LOCAL_PATH -Force;
+	EchoColor `"remove $LUAROCKS_LOCAL_PATH successfully`" 'Green';
+} if (Test-Path -Path $LUAROCKS_SYSTEM_PATH) {
+	rm -r $LUAROCKS_SYSTEM_PATH -Force;
+	EchoColor `"remove $LUAROCKS_SYSTEM_PATH successfully`" 'Green';
+} if (Test-Path -Path $MAKELUA_PATH) {
+	rm -r $MAKELUA_PATH -Force;
+	EchoColor `"remove $MAKELUA_PATH successfully`" 'Green';
+}";
 	cd $CURRENT_PATH;
-	pause;
+	exit;
+}
+
+cd $SCRIPT_PATH;
+# get admin mode
+$IS_ADMIN = [bool](([System.Security.Principal.WindowsIdentity]::GetCurrent()).groups -match "S-1-5-32-544");
+if(-not $IS_ADMIN)
+{
+	$params = @{
+		FilePath = 'pwsh';
+		Verb = 'RunAs';
+		ArgumentList = @(
+			"-ExecutionPolicy ByPass";
+			"-File `"$PSCommandPath`"";
+			$Args;
+		);
+	};
+	Start-Process @params;
+	cd $CURRENT_PATH;
 	exit;
 }
 
