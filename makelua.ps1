@@ -47,8 +47,18 @@ $SCRIPT_PATH = $PSScriptRoot;
 $LUAROCKS_ROAMING_PATH = "$env:USERPROFILE\AppData\Roaming\luarocks";
 $LUAROCKS_LOCAL_PATH = "$env:USERPROFILE\AppData\Local\LuaRocks";
 $LUAROCKS_SYSTEM_PATH = 'C:\Program Files\luarocks';
+$MAKELUA_ROAMING_PATH = "$env:USERPROFILE\AppData\Roaming\MakeLua";
+$MAKELUA_LOCAL_PATH = "$env:USERPROFILE\AppData\Local\MakeLua";
 $MAKELUA_PATH = 'C:\Program Files\MakeLua';
 $MAKELUA_VERSION = '1.0.0';
+
+if (-not(Test-Path -Path $MAKELUA_LOCAL_PATH)) {
+	mkdir $MAKELUA_LOCAL_PATH | Out-Null;
+} if (-not(Test-Path -Path $MAKELUA_ROAMING_PATH)) {
+	mkdir $MAKELUA_ROAMING_PATH | Out-Null;
+}
+
+cd $MAKELUA_ROAMING_PATH;
 
 # makelua noone arg
 if($args.Count -eq 0){
@@ -88,6 +98,7 @@ MakeLua install options: (link, compiler, optimize, lua_version, luarocks_versio
 
 to install use `"makelua dynamic msvc default $LUA_VERSION $LUAROCKS_VERSION`"
 MakeLua is a installer";
+	cd $CURRENT_PATH;
 	exit;
 }
 
@@ -111,7 +122,7 @@ if(-not $IS_ADMIN)
 
 # makelua uninstall
 if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
-	cd /;
+	cd $MAKELUA_ROAMING_PATH;
 	sleep 5;
 	if (Test-Path -Path $LUAROCKS_ROAMING_PATH) {
 		rm -r $LUAROCKS_ROAMING_PATH -Force;
@@ -122,49 +133,21 @@ if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
 	} if (Test-Path -Path $LUAROCKS_SYSTEM_PATH) {
 		rm -r $LUAROCKS_SYSTEM_PATH -Force;
 		EchoColor "remove $LUAROCKS_SYSTEM_PATH successfully" 'Green';
+	} if (Test-Path -Path $MAKELUA_ROAMING_PATH) {
+		rm -r $MAKELUA_ROAMING_PATH -Force;
+		EchoColor "remove $MAKELUA_ROAMING_PATH successfully" 'Green';
+	} if (Test-Path -Path $MAKELUA_LOCAL_PATH) {
+		rm -r $MAKELUA_LOCAL_PATH -Force;
+		EchoColor "remove $MAKELUA_LOCAL_PATH successfully" 'Green';
 	} if (Test-Path -Path $MAKELUA_PATH) {
 		rm -r $MAKELUA_PATH -Force;
 		EchoColor "remove $MAKELUA_PATH successfully" 'Green';
 	}
-$myCommand = "
-function SetColor{
-	param(
-		[String] $color
-	)
-	$host.ui.RawUI.ForegroundColor = $color;
-}
-
-function ResetColor{
-	$host.ui.RawUI.ForegroundColor = $T;
-}
-
-function EchoColor{
-	param(
-		[String] $echo,
-		[String] $color
-	)
-	SetColor $color;
-	echo $echo;
-	ResetColor;
-}
-
-if (Test-Path -Path $LUAROCKS_ROAMING_PATH) {
-	rm -r $LUAROCKS_ROAMING_PATH -Force;
-	EchoColor `"remove $LUAROCKS_ROAMING_PATH successfully`" 'Green';
-} if (Test-Path -Path $LUAROCKS_LOCAL_PATH) {
-	rm -r $LUAROCKS_LOCAL_PATH -Force;
-	EchoColor `"remove $LUAROCKS_LOCAL_PATH successfully`" 'Green';
-} if (Test-Path -Path $LUAROCKS_SYSTEM_PATH) {
-	rm -r $LUAROCKS_SYSTEM_PATH -Force;
-	EchoColor `"remove $LUAROCKS_SYSTEM_PATH successfully`" 'Green';
-} if (Test-Path -Path $MAKELUA_PATH) {
-	rm -r $MAKELUA_PATH -Force;
-	EchoColor `"remove $MAKELUA_PATH successfully`" 'Green';
-}";
 	cd $CURRENT_PATH;
 	exit;
 }
 
+# go to script path 
 cd $SCRIPT_PATH;
 
 # makelua install options: (link, compiler, optimize, lua_version, luarocks_version)
@@ -513,8 +496,7 @@ if (-not(Test-Path -Path lua.bat -PathType Leaf)) {
 	new-item luac.bat;
 } if (-not(Test-Path -Path wlua.bat -PathType Leaf)) {
 	new-item wlua.bat;
-}
-if (-not(Test-Path -Path makelua.bat -PathType Leaf)) {
+} if (-not(Test-Path -Path makelua.bat -PathType Leaf)) {
 	new-item makelua.bat;
 }
 set-content lua.bat "@call `"%~dp0\lua$LUA_VERSION_NAME`" %*";
