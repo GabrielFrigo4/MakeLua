@@ -123,8 +123,9 @@ if(-not $IS_ADMIN)
 
 # makelua uninstall
 if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
-	cd $MAKELUA_ROAMING_PATH;
-	sleep 5;
+	cd $MAKELUA_PATH;
+	cd ..;
+	sleep 2;
 	if (Test-Path -Path $LUAROCKS_ROAMING_PATH) {
 		rm -r $LUAROCKS_ROAMING_PATH -Force;
 		EchoColor "remove $LUAROCKS_ROAMING_PATH successfully" 'Green';
@@ -148,9 +149,6 @@ if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
 	pause;
 	exit;
 }
-
-# go to script path 
-cd $SCRIPT_PATH;
 
 # makelua install options: (link, compiler, optimize, lua_version, luarocks_version)
 if(($args.Count -ge 1 ) -and ($args[0] -eq 'install')){
@@ -203,6 +201,9 @@ if(($args.Count -ge 1 ) -and ($args[0] -eq 'install')){
 	if($ERR -eq $True){
 		exit;
 	}
+} else {
+	echo 'args count overflow';
+	exit;
 }
 
 $LUA_VERSION_ARRAY = ($LUA_VERSION).Split('.');
