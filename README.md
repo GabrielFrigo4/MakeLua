@@ -4,6 +4,7 @@ MakeLua is a installer lua in windows
  - to ser var in luarocks use: "luarocks config variables.VAR_NAME VAR_VALUE"
 
 In linux to get all lua pkgs use this commands (.deb):
+
     echo "Installing Lua"
     wget http://ftp.br.debian.org/debian/pool/main/l/lua5.4/liblua5.4-0_5.4.4-3_amd64.deb
     wget http://ftp.br.debian.org/debian/pool/main/l/lua5.4/liblua5.4-dev_5.4.4-3_amd64.deb
@@ -19,7 +20,9 @@ In linux to get all lua pkgs use this commands (.deb):
     rm luarocks_3.8.0+dfsg1-1_all.deb
     echo "Lua Installed"
 
+
 or build lua:
+
     # install lua-essential
     export LUA_VER=5.4
     export LUA_LONG_VER=$LUA_VER.4
