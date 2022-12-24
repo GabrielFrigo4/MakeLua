@@ -21,7 +21,7 @@ In linux to get all lua pkgs use this commands (.deb):
     echo "Lua Installed"
 
 
-or build lua:
+or build lua(make):
 
     # install lua-essential
     export LUA_VER=5.4
