@@ -94,35 +94,6 @@ MakeLua is a installer";
 	exit;
 }
 
-# makelua uninstall
-if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
-	Set-Location ..;
-	if (Test-Path -Path $LUAROCKS_ROAMING_PATH) {
-		rm -r $LUAROCKS_ROAMING_PATH -Force;
-		EchoColor "remove $LUAROCKS_ROAMING_PATH successfully" 'Green';
-	} if (Test-Path -Path $LUAROCKS_LOCAL_PATH) {
-		rm -r $LUAROCKS_LOCAL_PATH -Force;
-		EchoColor "remove $LUAROCKS_LOCAL_PATH successfully" 'Green';
-	} if (Test-Path -Path $LUAROCKS_SYSTEM_PATH) {
-		rm -r $LUAROCKS_SYSTEM_PATH -Force;
-		EchoColor "remove $LUAROCKS_SYSTEM_PATH successfully" 'Green';
-	} if (Test-Path -Path $MAKELUA_PATH) {
-		While ( Test-Path($yourFileDir) ){
-			Try {
-				rm -r $MAKELUA_PATH -Force -ErrorAction Stop;
-			} catch {
-				Write-Verbose "File locked, trying again in 5";
-				Start-Sleep -seconds 5;
-			}
-		}
-		# rm -r $MAKELUA_PATH -Force;
-		EchoColor "remove $MAKELUA_PATH successfully" 'Green';
-	}
-	cd $CURRENT_PATH;
-	pause;
-	exit;
-}
-
 # get admin mode
 $IS_ADMIN = [bool](([System.Security.Principal.WindowsIdentity]::GetCurrent()).groups -match "S-1-5-32-544");
 if(-not $IS_ADMIN)
@@ -139,6 +110,35 @@ if(-not $IS_ADMIN)
     Start-Process @params;
 	cd $CURRENT_PATH;
     exit;
+}
+
+# makelua uninstall
+if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
+	Set-Location ..;
+	if (Test-Path -Path $LUAROCKS_ROAMING_PATH) {
+		rm -r $LUAROCKS_ROAMING_PATH -Force;
+		EchoColor "remove $LUAROCKS_ROAMING_PATH successfully" 'Green';
+	} if (Test-Path -Path $LUAROCKS_LOCAL_PATH) {
+		rm -r $LUAROCKS_LOCAL_PATH -Force;
+		EchoColor "remove $LUAROCKS_LOCAL_PATH successfully" 'Green';
+	} if (Test-Path -Path $LUAROCKS_SYSTEM_PATH) {
+		rm -r $LUAROCKS_SYSTEM_PATH -Force;
+		EchoColor "remove $LUAROCKS_SYSTEM_PATH successfully" 'Green';
+	} if (Test-Path -Path $MAKELUA_PATH) {
+		While (Test-Path -Path $MAKELUA_PATH){
+			Try {
+				rm -r $MAKELUA_PATH -Force -ErrorAction Stop;
+			} catch {
+				Write-Verbose "File locked, trying again in 5";
+				Start-Sleep -seconds 5;
+			}
+		}
+		# rm -r $MAKELUA_PATH -Force;
+		EchoColor "remove $MAKELUA_PATH successfully" 'Green';
+	}
+	cd $CURRENT_PATH;
+	pause;
+	exit;
 }
 
 # makelua install options: (link, compiler, optimize, lua_version, luarocks_version)
