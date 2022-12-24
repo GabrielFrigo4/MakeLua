@@ -15,3 +15,28 @@ In linux to get all lua pkgs use this commands:
     sudo dpkg -i lua5.4_5.4.4-3_amd64.deb
     sudo dpkg -i luarocks_3.8.0+dfsg1-1_all.deb
     echo "Lua Installed"
+
+    # install lua-essential
+    export LUA_VER=5.4
+    export LUA_LONG_VER=$LUA_VER.4
+    sudo apt install -y liblua$LUA_VER-dev liblua$LUA_VER-0-dbg liblua$LUA_VER-0
+    curl -R -O http://www.lua.org/ftp/lua-$LUA_LONG_VER.tar.gz
+    tar -zxf lua-$LUA_LONG_VER.tar.gz
+    cd lua-$LUA_LONG_VER
+    make linux test
+    sudo make install
+    cd ..
+    sudo rm -r lua-$LUA_LONG_VER.tar.gz lua-$LUA_LONG_VER
+
+    # install luarocks
+    export LUAROCKS_VER=3.9.2
+    wget https://luarocks.org/releases/luarocks-$LUAROCKS_VER.tar.gz
+    sudo mkdir -p /root/.luarocks/share/lua/$LUA_VER/luarocks/cmd/external
+    mkdir -p /home/gabri/.luarocks
+    touch /home/gabri/.luarocks/config-$LUA_VER.lua
+    tar zxpf luarocks-$LUAROCKS_VER.tar.gz
+    cd luarocks-$LUAROCKS_VER
+    ./configure; sudo make bootstrap
+    sudo luarocks config --scope system lua_version $LUA_VER
+    cd ..
+    sudo rm -r luarocks-$LUAROCKS_VER.tar.gz luarocks-$LUAROCKS_VER
