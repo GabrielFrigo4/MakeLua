@@ -102,7 +102,6 @@ if(-not $IS_ADMIN)
         FilePath = 'pwsh'
         Verb = 'RunAs'
         ArgumentList = @(
-			"-NoExit";
             "-ExecutionPolicy ByPass";
             "-File `"$PSCommandPath`"";
 			$Args;
@@ -142,36 +141,42 @@ if(($args.Count -ge 1 ) -and ($args[0] -eq 'install')){
 	cd $MAKELUA_PATH;
 	EchoColor 'MakeLua Options Using:' 'Green';
 	$ERR = $False;
+	
 	if($args.Count -ge 2){
-		$IS_DYNAMIC_OR_STATIC = $Args[0] -as [string]; #dynamic static || link options	
+		$IS_DYNAMIC_OR_STATIC = $Args[1] -as [string]; #dynamic static || link options	
 	} else {
 		$IS_DYNAMIC_OR_STATIC='dynamic';
-		EchoColor " - link: $IS_DYNAMIC_OR_STATIC" 'Green';
 	}
+	EchoColor " - link: $IS_DYNAMIC_OR_STATIC" 'Green';
+	
 	if($args.Count -ge 3){
-		$COMPILER = $Args[1] -as [string]; #msvc llvm gnu || compiler options	
+		$COMPILER = $Args[2] -as [string]; #msvc llvm gnu || compiler options	
 	} else {
 		$COMPILER = 'msvc';
-		EchoColor " - compiler: $COMPILER" 'Green';
 	}
+	EchoColor " - compiler: $COMPILER" 'Green';
+	
 	if($args.Count -ge 4){
-		$OPTIMIZE = $Args[2] -as [string]; #default size speed || optimize options	
+		$OPTIMIZE = $Args[3] -as [string]; #default size speed || optimize options	
 	} else {
 		$OPTIMIZE = 'default';
-		EchoColor " - optimize: $OPTIMIZE" 'Green';
 	}
+	EchoColor " - optimize: $OPTIMIZE" 'Green';
+	
 	if($args.Count -ge 5){
-		$LUA_VERSION = $Args[3] -as [string]; #lua version
+		$LUA_VERSION = $Args[4] -as [string]; #lua version
 	} else {
 		$LUA_VERSION = GetLuaVersionWeb;
-		EchoColor " - lua_version: $LUA_VERSION" 'Green';
-	} 
+	}
+	EchoColor " - lua_version: $LUA_VERSION" 'Green';
+	
 	if($args.Count -ge 6){
-		$LUAROCKS_VERSION = $Args[4] -as [string]; #luarocks version
+		$LUAROCKS_VERSION = $Args[5] -as [string]; #luarocks version
 	} else {
 		$LUAROCKS_VERSION = GetLuaRocksVersionWeb;
-		EchoColor " - luarocks_version: $LUAROCKS_VERSION" 'Green';
 	}
+	EchoColor " - luarocks_version: $LUAROCKS_VERSION" 'Green';
+		
 	Newline;
 	if($ERR -eq $True){
 		exit;
