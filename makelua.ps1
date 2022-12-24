@@ -100,16 +100,24 @@ if(-not $IS_ADMIN)
 if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
 	if (Test-Path -Path $LUAROCKS_ROAMING_PATH) {
 		rm -r $LUAROCKS_ROAMING_PATH;
-		echo "remove $LUAROCKS_ROAMING_PATH successfully"
+		SetColor "Green"; 
+		echo "remove $LUAROCKS_ROAMING_PATH successfully";
+		ResetColor;
 	} if (Test-Path -Path $LUAROCKS_LOCAL_PATH) {
 		rm -r $LUAROCKS_LOCAL_PATH;
-		echo "remove $LUAROCKS_LOCAL_PATH successfully"
+		SetColor "Green";
+		echo "remove $LUAROCKS_LOCAL_PATH successfully";
+		ResetColor;
 	} if (Test-Path -Path $LUAROCKS_SYSTEM_PATH) {
 		rm -r $LUAROCKS_SYSTEM_PATH;
-		echo "remove $LUAROCKS_SYSTEM_PATH successfully"
+		SetColor "Green";
+		echo "remove $LUAROCKS_SYSTEM_PATH successfully";
+		ResetColor;
 	} if (Test-Path -Path $MAKELUA_PATH) {
 		rm -r $MAKELUA_PATH;
-		echo "remove $MAKELUA_PATH successfully"
+		SetColor "Green";
+		echo "remove $MAKELUA_PATH successfully";
+		ResetColor;
 	}
 	exit;
 }
