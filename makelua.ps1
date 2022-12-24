@@ -134,7 +134,6 @@ if(-not $IS_ADMIN)
 
 # makelua uninstall
 if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
-	cd $PROGAM_FILES_PATH;
 	sleep 2;
 	if (Test-Path -Path $LUAROCKS_ROAMING_PATH) {
 		rm -r $LUAROCKS_ROAMING_PATH -Force;
@@ -168,7 +167,7 @@ if(($args.Count -ge 1 ) -and ($args[0] -eq 'install')){
 	}
 	# makelua dir
 	if (-not(Test-Path -Path $MAKELUA_PATH)) {
-		mkdir $MAKELUA_PATH;
+		mkdir $MAKELUA_PATH | Out-Null;
 	}
 	if (-not($MAKELUA_PATH -eq $SCRIPT_PATH)){
 		mv "$SCRIPT_PATH\makelua.ps1" "$MAKELUA_PATH\makelua.ps1"
@@ -223,7 +222,7 @@ if(($args.Count -ge 1 ) -and ($args[0] -eq 'install')){
 
 $LUA_VERSION_ARRAY = ($LUA_VERSION).Split('.');
 $LUA_VERSION_NAME = ($LUA_VERSION_ARRAY[0] + $LUA_VERSION_ARRAY[1]) -as [string];
-$LUAROCKS_CONFIG_FILE = "config-$LUA_VERSION_NAME.lua";
+$LUAROCKS_CONFIG_FILE = "config-$(($LUA_VERSION_ARRAY[0] + '.' + $LUA_VERSION_ARRAY[1]) -as [string]).lua";
 #luarocks information files
 if (-not(Test-Path -Path "$LUAROCKS_SYSTEM_PATH\$LUAROCKS_CONFIG_FILE" -PathType Leaf)) {
 	new-item "$LUAROCKS_SYSTEM_PATH\$LUAROCKS_CONFIG_FILE" | Out-Null;
