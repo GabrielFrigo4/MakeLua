@@ -63,6 +63,7 @@ cd $MAKELUA_ROAMING_PATH;
 # makelua noone arg
 if($args.Count -eq 0){
 	Write-Host 'type: "makelua help" for more information';
+	cd $CURRENT_PATH;
 	exit;
 }
 
@@ -144,6 +145,7 @@ if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
 		EchoColor "remove $MAKELUA_PATH successfully" 'Green';
 	}
 	cd $CURRENT_PATH;
+	pause;
 	exit;
 }
 
