@@ -43,7 +43,7 @@ function GetLuaRocksVersionWeb{
 
 # informations
 $CURRENT_OS = (Get-CimInstance -ClassName CIM_OperatingSystem).Caption;
-$MAKELUA_VERSION = '1.1.0';
+$MAKELUA_VERSION = '1.1.1';
 # basic paths
 $CURRENT_PATH = pwd;
 $SCRIPT_PATH = $PSScriptRoot;
@@ -399,7 +399,7 @@ if ($COMPILER -eq 'msvc'){
 	echo "start build lua$LUA_VERSION_NAME.dll and lua$LUA_VERSION_NAME.lib";
 	clang -$O -DNDEBUG -static *.o -shared -$("Wl,-implib:lua$LUA_VERSION_NAME.lib") -o lua$LUA_VERSION_NAME.dll | Out-Null;
 	echo "start build lua$LUA_VERSION_NAME-static.lib";
-	llvm-ar -rcs lua$LUA_VERSION_NAME-static.lib *.o | Out-Null;
+	llvm-lib /OUT:lua$LUA_VERSION_NAME-static.lib *.o | Out-Null;
 	echo "start build lua$LUA_VERSION_NAME.exe";
 	if($IS_DYNAMIC_OR_STATIC -eq 'dynamic'){
 		clang -$O -DNDEBUG -static lua$LUA_VERSION_NAME.lib lua.obj -$('Wl,-subsystem:console') -o lua$LUA_VERSION_NAME.exe | Out-Null;
