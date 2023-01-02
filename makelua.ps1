@@ -270,7 +270,7 @@ extern int main (int argc, char **argv);
 extern int __argc;
 extern char ** __argv;
 
-INT WINAPI WinMain()
+INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nCmdShow)
 {
     return main(__argc, __argv);
 }';
