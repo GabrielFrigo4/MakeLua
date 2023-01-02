@@ -270,35 +270,12 @@ set-content wmain.c '#include <windows.h>
 #include <stdlib.h>
 #include <limits.h>
 extern int main (int argc, char **argv);
+extern int __argc;
+extern char ** __argv;
 
-INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
-    PSTR lpCmdLine, INT nCmdShow)
+INT WINAPI WinMain()
 {
-    int argc;
-	LPWSTR wCmd = GetCommandLineW();
-    LPWSTR* wArgv = CommandLineToArgvW(wCmd, &argc);
-	char** argv = malloc(sizeof(char*) * (argc + 1));
-	for(int i = 0; i < argc; i++){
-		int size = 0;
-		while(wArgv[i][size] != 0){
-			size++;
-		}
-		size++;
-		argv[i] = malloc(sizeof(char) * size);
-		size_t sret;
-		wcstombs_s(&sret, argv[i], (size_t)size, wArgv[i], (size_t)size-1);
-	}
-	argv[argc] = malloc(sizeof(char) * 1);
-	argv[argc][0] = 0;
-	
-	int mret = main(argc, argv);
-	for(int i = 0; i <= argc; i++){
-		free(argv[i]);
-	}
-	free(argv);
-	LocalFree(wArgv);	
-	
-    return mret;
+    return main(__argc, __argv);
 }';
 
 if ($COMPILER -eq 'msvc'){
