@@ -265,10 +265,7 @@ if (Test-Path -Path ./src) {
 
 new-item wmain.c | Out-Null;
 set-content wmain.c '#include <windows.h>
-#include <stdio.h>
-#include <shellapi.h>
 #include <stdlib.h>
-#include <limits.h>
 extern int main (int argc, char **argv);
 extern int __argc;
 extern char ** __argv;
