@@ -7,7 +7,6 @@ MakeLua is a installer lua in windows
 Is a language type lua
 
     git clone https://github.com/edubart/nelua-lang.git && cd nelua-lang && make
-    rm -r .git
     rm -r .github
     rm -r docs
     rm -r examples
@@ -21,7 +20,7 @@ Is a language type lua
     rm CONTRIBUTING.md
     rm DockerFile
     rm LICENSE
-    rm MakeFile
+    rm Makefile
     rm README.md
     
     
