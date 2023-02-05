@@ -6,9 +6,25 @@ MakeLua is a installer lua in windows
 # Nelua (In Windows)
 Is a language type lua
 
-    git clone https://github.com/edubart/nelua-lang.git && cd nelua-lang
-    make
-
+    git clone https://github.com/edubart/nelua-lang.git && cd nelua-lang && make
+    rm -r .git
+    rm -r .github
+    rm -r docs
+    rm -r examples
+    rm -r spec
+    rm -r src
+    rm -r tests
+    PS C:\Users\gabri\OneDrive\Área de Trabalho\nelua-lang> rm .gitattributes
+    rm .gitignore
+    rm .luacheckrc
+    rm .luacov
+    rm CONTRIBUTING.md
+    rm DockerFile
+    rm LICENSE
+    rm MakeFile
+    rm README.md
+    
+    
 # In linux (Debian)
 (dpkg) to get lua and luarocks use:
 
