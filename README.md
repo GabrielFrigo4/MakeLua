@@ -8,9 +8,7 @@ Is a language type lua
 
     echo "Installing Nelua"
     git clone https://github.com/edubart/nelua-lang.git && cd nelua-lang && make
-    $folder = Get-Item ./.git -Force
-    $folder.Attributes = $folder.Attributes -band -bnot [System.IO.FileAttributes]::Hidden
-    rm -r $folder
+    Remove-item -Path .\.git -Force
     rm -r .github
     rm -r docs
     rm -r examples
