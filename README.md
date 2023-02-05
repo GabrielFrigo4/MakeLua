@@ -21,6 +21,7 @@ Is a language type lua
     rm CONTRIBUTING.md
     rm Dockerfile
     rm LICENSE
+    rm nelua
     rm Makefile
     rm README.md
     echo "Nelua Installed"
