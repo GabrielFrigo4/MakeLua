@@ -18,7 +18,7 @@ Is a language type lua
     rm .luacheckrc
     rm .luacov
     rm CONTRIBUTING.md
-    rm DockerFile
+    rm Dockerfile
     rm LICENSE
     rm Makefile
     rm README.md
