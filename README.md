@@ -14,7 +14,7 @@ Is a language type lua
     rm -r spec
     rm -r src
     rm -r tests
-    PS C:\Users\gabri\OneDrive\Área de Trabalho\nelua-lang> rm .gitattributes
+    rm .gitattributes
     rm .gitignore
     rm .luacheckrc
     rm .luacov
