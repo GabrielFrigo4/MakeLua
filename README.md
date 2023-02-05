@@ -4,7 +4,7 @@ MakeLua is a installer lua in windows
  - to ser var in luarocks use: "luarocks config variables.VAR_NAME VAR_VALUE"
 
 # Nelua (In Windows)
-Is a language type lua
+Is a language type lua (https://nelua.io/)
 
     echo "Installing Nelua"
     git clone https://github.com/edubart/nelua-lang.git && cd nelua-lang && make
