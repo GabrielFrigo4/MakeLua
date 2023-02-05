@@ -6,7 +6,7 @@ MakeLua is a installer lua in windows
 # Nelua (In Windows)
 Is a language type lua
 
-    echo "Start Build Nelua"
+    echo "Installing Nelua"
     git clone https://github.com/edubart/nelua-lang.git && cd nelua-lang && make
     rm -r .github
     rm -r docs
@@ -23,7 +23,7 @@ Is a language type lua
     rm LICENSE
     rm Makefile
     rm README.md
-    echo "End Build Nelua"
+    echo "Nelua Installed"
     
     
 # In linux (Debian)
