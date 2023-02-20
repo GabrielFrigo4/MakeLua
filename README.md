@@ -3,6 +3,31 @@ MakeLua is a installer lua in windows
  - to update luarocks version use: "sudo luarocks config --scope system lua_version 5.4"
  - to ser var in luarocks use: "luarocks config variables.VAR_NAME VAR_VALUE"
 
+# Nelua (In Windows)
+Is a language type lua (https://nelua.io/)
+
+    echo "Installing Nelua"
+    git clone https://github.com/edubart/nelua-lang.git && cd nelua-lang && make
+    Remove-item -Path .\.git -Force
+    rm -r .github
+    rm -r docs
+    rm -r examples
+    rm -r spec
+    rm -r src
+    rm -r tests
+    rm .gitattributes
+    rm .gitignore
+    rm .luacheckrc
+    rm .luacov
+    rm CONTRIBUTING.md
+    rm Dockerfile
+    rm LICENSE
+    rm nelua
+    rm Makefile
+    rm README.md
+    echo "Nelua Installed"
+    
+    
 # In linux (Debian)
 (dpkg) to get lua and luarocks use:
 
