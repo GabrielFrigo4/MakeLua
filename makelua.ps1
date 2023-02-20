@@ -108,7 +108,7 @@ MakeLua install options: (link, compiler, optimize, lua_version, luarocks_versio
  - lua_version:
  - luarocks_version:
 
-to install use `"makelua dynamic msvc default $LUA_VERSION $LUAROCKS_VERSION`"
+to install use `"makelua install dynamic msvc default $LUA_VERSION $LUAROCKS_VERSION`"
 MakeLua is a installer";
 	cd $CURRENT_PATH;
 	exit;
@@ -496,10 +496,10 @@ if (-not(Test-Path -Path lua.bat -PathType Leaf)) {
 } if (-not(Test-Path -Path makelua.bat -PathType Leaf)) {
 	new-item makelua.bat | Out-Null;
 }
-set-content lua.bat "@call `"%~dp0\lua$LUA_VERSION_NAME`" %*";
-set-content luac.bat "@call `"%~dp0\luac$LUA_VERSION_NAME`" %*";
-set-content wlua.bat "@call `"%~dp0\wlua$LUA_VERSION_NAME`" %*";
-set-content makelua.bat "@call pwsh -file `"%~dp0\\makelua.ps1`" %*";
+set-content lua.bat "@call `"%~dp0lua$LUA_VERSION_NAME`" %*";
+set-content luac.bat "@call `"%~dp0luac$LUA_VERSION_NAME`" %*";
+set-content wlua.bat "@call `"%~dp0wlua$LUA_VERSION_NAME`" %*";
+set-content makelua.bat "@call pwsh -file `"%~dp0makelua.ps1`" %*";
 echo 'finish script';
 cd $CURRENT_PATH;
 pause;
