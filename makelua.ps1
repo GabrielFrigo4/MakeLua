@@ -1,5 +1,7 @@
 # makelua use powershell 7 or greater
 # makelua use msvc or llvm or gnu
+# makelua use make
+# makelua use git
 # makelua use curl
 # makelua use tar
 # makelua use 7z
@@ -53,16 +55,10 @@ $LUAROCKS_ROAMING_PATH = "$env:USERPROFILE\AppData\Roaming\luarocks";
 $LUAROCKS_LOCAL_PATH = "$env:USERPROFILE\AppData\Local\LuaRocks";
 $LUAROCKS_SYSTEM_PATH = 'C:\Program Files\luarocks';
 # makelua paths
-$MAKELUA_ROAMING_PATH = "$env:USERPROFILE\AppData\Roaming\MakeLua";
-$MAKELUA_LOCAL_PATH = "$env:USERPROFILE\AppData\Local\MakeLua";
 $MAKELUA_PATH = 'C:\Program Files\MakeLua';
 
 # create basic dirs
-if (-not(Test-Path -Path $MAKELUA_ROAMING_PATH)) {
-	mkdir $MAKELUA_ROAMING_PATH | Out-Null;
-} if (-not(Test-Path -Path $MAKELUA_LOCAL_PATH)) {
-	mkdir $MAKELUA_LOCAL_PATH | Out-Null;
-} if (-not(Test-Path -Path $LUAROCKS_ROAMING_PATH)) {
+if (-not(Test-Path -Path $LUAROCKS_ROAMING_PATH)) {
 	mkdir $LUAROCKS_ROAMING_PATH | Out-Null;
 } if (-not(Test-Path -Path $LUAROCKS_LOCAL_PATH)) {
 	mkdir $LUAROCKS_LOCAL_PATH | Out-Null;
@@ -96,19 +92,24 @@ MakeLua uses:
  - tar
  - 7z
 
-MakeLua options: (help / install)
+(MakeLua) options: (help / install / uninstall)
  - help: show help information (this)
  - install: install lua and luarocks
  - uninstall: uninstall lua and luarocks
 
-MakeLua install options: (link, compiler, optimize, lua_version, luarocks_version)
+(MakeLua install) options: (lua / nelua / luajit)
+ - lua
+ - nelua
+ - luajit
+
+(MakeLua install lua) options: (link, compiler, optimize, lua_version, luarocks_version)
  - link: dynamic static
  - compiler: msvc llvm gnu
  - optimize: default size speed
  - lua_version:
  - luarocks_version:
 
-to install use `"makelua install dynamic msvc default $LUA_VERSION $LUAROCKS_VERSION`"
+to install use `"makelua install lua dynamic msvc default $LUA_VERSION $LUAROCKS_VERSION`"
 MakeLua is a installer";
 	cd $CURRENT_PATH;
 	exit;
@@ -144,12 +145,6 @@ if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
 	} if (Test-Path -Path $LUAROCKS_SYSTEM_PATH) {
 		rm -r $LUAROCKS_SYSTEM_PATH -Force;
 		EchoColor "remove $LUAROCKS_SYSTEM_PATH successfully" 'Green';
-	} if (Test-Path -Path $MAKELUA_ROAMING_PATH) {
-		rm -r $MAKELUA_ROAMING_PATH -Force;
-		EchoColor "remove $MAKELUA_ROAMING_PATH successfully" 'Green';
-	} if (Test-Path -Path $MAKELUA_LOCAL_PATH) {
-		rm -r $MAKELUA_LOCAL_PATH -Force;
-		EchoColor "remove $MAKELUA_LOCAL_PATH successfully" 'Green';
 	} if (Test-Path -Path $MAKELUA_PATH) {
 		rm -r $MAKELUA_PATH -Force;
 		EchoColor "remove $MAKELUA_PATH successfully" 'Green';
@@ -159,8 +154,8 @@ if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
 	exit;
 }
 
-# makelua install options: (link, compiler, optimize, lua_version, luarocks_version)
-if(($args.Count -ge 1 ) -and ($args[0] -eq 'install')){
+# makelua install lua options: (link, compiler, optimize, lua_version, luarocks_version)
+if(($args.Count -ge 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'lua')){
 	#luarocks information dir
 	if (-not(Test-Path -Path $LUAROCKS_SYSTEM_PATH)) {
 		mkdir $LUAROCKS_SYSTEM_PATH | Out-Null;
@@ -176,36 +171,36 @@ if(($args.Count -ge 1 ) -and ($args[0] -eq 'install')){
 	EchoColor 'MakeLua Options Using:' 'Green';
 	$ERR = $False;
 	
-	if($args.Count -ge 2){
-		$IS_DYNAMIC_OR_STATIC = $Args[1] -as [string]; #dynamic static || link options	
+	if($Args.Count -ge 3){
+		$IS_DYNAMIC_OR_STATIC = $Args[2] -as [string]; #dynamic static || link options	
 	} else {
 		$IS_DYNAMIC_OR_STATIC='dynamic';
 	}
 	EchoColor " - link: $IS_DYNAMIC_OR_STATIC" 'Green';
 	
-	if($args.Count -ge 3){
-		$COMPILER = $Args[2] -as [string]; #msvc llvm gnu || compiler options	
+	if($Args.Count -ge 4){
+		$COMPILER = $Args[3] -as [string]; #msvc llvm gnu || compiler options	
 	} else {
 		$COMPILER = 'msvc';
 	}
 	EchoColor " - compiler: $COMPILER" 'Green';
 	
-	if($args.Count -ge 4){
-		$OPTIMIZE = $Args[3] -as [string]; #default size speed || optimize options	
+	if($Args.Count -ge 5){
+		$OPTIMIZE = $Args[4] -as [string]; #default size speed || optimize options	
 	} else {
 		$OPTIMIZE = 'default';
 	}
 	EchoColor " - optimize: $OPTIMIZE" 'Green';
 	
-	if($args.Count -ge 5){
-		$LUA_VERSION = $Args[4] -as [string]; #lua version
+	if($Args.Count -ge 6){
+		$LUA_VERSION = $Args[5] -as [string]; #lua version
 	} else {
 		$LUA_VERSION = GetLuaVersionWeb;
 	}
 	EchoColor " - lua_version: $LUA_VERSION" 'Green';
 	
-	if($args.Count -ge 6){
-		$LUAROCKS_VERSION = $Args[5] -as [string]; #luarocks version
+	if($Args.Count -ge 7){
+		$LUAROCKS_VERSION = $Args[6] -as [string]; #luarocks version
 	} else {
 		$LUAROCKS_VERSION = GetLuaRocksVersionWeb;
 	}
@@ -217,6 +212,37 @@ if(($args.Count -ge 1 ) -and ($args[0] -eq 'install')){
 	}
 } else {
 	echo 'args count overflow';
+	exit;
+}
+
+# makelua install nelua
+if(($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'nelua')){
+	echo "Installing Nelua";
+	git clone https://github.com/edubart/nelua-lang.git && cd nelua-lang && make;
+	Remove-item -Path .\.git -Force;
+	rm -r .github;
+	rm -r docs;
+	rm -r examples;
+	rm -r spec;
+	rm -r src;
+	rm -r tests;
+	rm .gitattributes;
+	rm .gitignore;
+	rm .luacheckrc;
+	rm .luacov;
+	rm CONTRIBUTING.md;
+	rm Dockerfile;
+	rm LICENSE;
+	rm nelua;
+	rm Makefile;
+	rm README.md;
+	echo "Nelua Installed";
+	exit;
+}
+
+# makelua install luajit
+if(($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'luajit')){
+	echo "luajit ainda está indisponivel";
 	exit;
 }
 
