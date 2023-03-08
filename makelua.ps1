@@ -154,12 +154,13 @@ if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
 	exit;
 }
 
-$ARG_ERR = $True
+$ARG_ERR = $True;
 
 # makelua install lua options: (link, compiler, optimize, lua_version, luarocks_version)
 if(($args.Count -ge 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'lua')){
-	$ARG_ERR = $False
-	
+	$LUA_PATH = "$MAKELUA_PATH\lua-lang";
+	$ARG_ERR = $False;
+
 	#luarocks information dir
 	if (-not(Test-Path -Path $LUAROCKS_SYSTEM_PATH)) {
 		mkdir $LUAROCKS_SYSTEM_PATH | Out-Null;
@@ -167,11 +168,20 @@ if(($args.Count -ge 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'lua'))
 	# makelua dir
 	if (-not(Test-Path -Path $MAKELUA_PATH)) {
 		mkdir $MAKELUA_PATH | Out-Null;
+	} if (-not(Test-Path -Path $MAKELUA_PATH)) {
+		mkdir $MAKELUA_PATH | Out-Null;
+	} 
+	
+	if (Test-Path -Path $LUA_PATH) {
+		rm -r $LUA_PATH;
 	}
+	mkdir $LUA_PATH;
+	
 	if (-not($MAKELUA_PATH -eq $SCRIPT_PATH)){
 		mv "$SCRIPT_PATH\makelua.ps1" "$MAKELUA_PATH\makelua.ps1"
 	}
-	cd $MAKELUA_PATH;
+	
+	cd $LUA_PATH;
 	EchoColor 'MakeLua Options Using:' 'Green';
 	$ERR = $False;
 	
