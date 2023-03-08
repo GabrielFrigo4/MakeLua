@@ -28,7 +28,7 @@ Is a language type lua (https://nelua.io/)
     echo "Nelua Installed"
     
     
-# In linux (Debian)
+# Lua In linux (Debian)
 (dpkg) to get lua and luarocks use:
 
     echo "Installing Lua"
