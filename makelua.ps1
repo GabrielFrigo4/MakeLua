@@ -218,14 +218,12 @@ if(($args.Count -ge 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'lua'))
 
 # makelua install nelua
 if(($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'nelua')){
-	$NELUA_PATH = "$MAKELUA_PATH\nelua-lang"
-	$ARG_ERR = $False
-	
+	$NELUA_PATH = "$MAKELUA_PATH\nelua-lang";
 	if (Test-Path -Path $NELUA_PATH) {
 		rm -r $NELUA_PATH;
 	}
 	
-	echo "Installing Nelua";
+	EchoColor "Installing Nelua" 'Green';
 	git clone "https://github.com/edubart/nelua-lang.git" "$NELUA_PATH"
 	cd $NELUA_PATH
 	make;
@@ -247,15 +245,16 @@ if(($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'nelua'
 	rm $NELUA_PATH\nelua;
 	rm $NELUA_PATH\Makefile;
 	rm $NELUA_PATH\README.md;
-	echo "Nelua Installed";
+	EchoColor "Nelua Installed" 'Green';
 	pause;
 	exit;
 }
 
 # makelua install luajit
 if(($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'luajit')){
-	$ARG_ERR = $False
-	echo "luajit ainda está indisponivel";
+	$LUAJIT_PATH = "$MAKELUA_PATH\luajit-lang";
+	EchoColor "luajit is still unavailable" 'Red';
+	pause;
 	exit;
 }
 
