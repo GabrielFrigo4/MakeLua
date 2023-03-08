@@ -154,8 +154,12 @@ if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
 	exit;
 }
 
+$ARG_ERR = $True
+
 # makelua install lua options: (link, compiler, optimize, lua_version, luarocks_version)
 if(($args.Count -ge 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'lua')){
+	$ARG_ERR = $False
+	
 	#luarocks information dir
 	if (-not(Test-Path -Path $LUAROCKS_SYSTEM_PATH)) {
 		mkdir $LUAROCKS_SYSTEM_PATH | Out-Null;
@@ -210,39 +214,54 @@ if(($args.Count -ge 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'lua'))
 	if($ERR -eq $True){
 		exit;
 	}
-} else {
-	echo 'args count overflow';
-	exit;
 }
 
 # makelua install nelua
 if(($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'nelua')){
+	$NELUA_PATH = "$MAKELUA_PATH\nelua-lang"
+	$ARG_ERR = $False
+	
+	if (Test-Path -Path $NELUA_PATH) {
+		rm -r $NELUA_PATH;
+	}
+	
 	echo "Installing Nelua";
-	git clone https://github.com/edubart/nelua-lang.git && cd nelua-lang && make;
-	Remove-item -Path .\.git -Force;
-	rm -r .github;
-	rm -r docs;
-	rm -r examples;
-	rm -r spec;
-	rm -r src;
-	rm -r tests;
-	rm .gitattributes;
-	rm .gitignore;
-	rm .luacheckrc;
-	rm .luacov;
-	rm CONTRIBUTING.md;
-	rm Dockerfile;
-	rm LICENSE;
-	rm nelua;
-	rm Makefile;
-	rm README.md;
+	git clone "https://github.com/edubart/nelua-lang.git" "$NELUA_PATH"
+	cd $NELUA_PATH
+	make;
+	
+	Remove-item -Path $NELUA_PATH\\.git -Force;
+	rm -r $NELUA_PATH\.github;
+	rm -r $NELUA_PATH\docs;
+	rm -r $NELUA_PATH\examples;
+	rm -r $NELUA_PATH\spec;
+	rm -r $NELUA_PATH\src;
+	rm -r $NELUA_PATH\tests;
+	rm $NELUA_PATH\.gitattributes;
+	rm $NELUA_PATH\.gitignore;
+	rm $NELUA_PATH\.luacheckrc;
+	rm $NELUA_PATH\.luacov;
+	rm $NELUA_PATH\CONTRIBUTING.md;
+	rm $NELUA_PATH\Dockerfile;
+	rm $NELUA_PATH\LICENSE;
+	rm $NELUA_PATH\nelua;
+	rm $NELUA_PATH\Makefile;
+	rm $NELUA_PATH\README.md;
 	echo "Nelua Installed";
+	pause;
 	exit;
 }
 
 # makelua install luajit
 if(($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'luajit')){
+	$ARG_ERR = $False
 	echo "luajit ainda está indisponivel";
+	exit;
+}
+
+# args error
+if($ARG_ERR -eq $True) {
+	echo 'args count overflow';
 	exit;
 }
 

@@ -9,3 +9,6 @@
 *.bat
 # ignore all include
 include/
+nelua-lang/
+lua-lang/
+luajit-lang/
