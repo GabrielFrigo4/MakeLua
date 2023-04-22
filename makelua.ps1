@@ -160,6 +160,7 @@ $ARG_ERR = $True;
 if(($args.Count -ge 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'lua')){
 	$LUA_PATH = "$MAKELUA_PATH\lua-lang";
 	$ARG_ERR = $False;
+	EchoColor "Installing Lua" 'Green';
 
 	#luarocks information dir
 	if (-not(Test-Path -Path $LUAROCKS_SYSTEM_PATH)) {
@@ -229,16 +230,16 @@ if(($args.Count -ge 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'lua'))
 # makelua install nelua
 if(($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'nelua')){
 	$NELUA_PATH = "$MAKELUA_PATH\nelua-lang";
+	EchoColor "Installing Nelua" 'Green';
 	if (Test-Path -Path $NELUA_PATH) {
 		rm -r $NELUA_PATH;
 	}
 	
-	EchoColor "Installing Nelua" 'Green';
-	git clone "https://github.com/edubart/nelua-lang.git" "$NELUA_PATH"
-	cd $NELUA_PATH
+	git clone "https://github.com/edubart/nelua-lang.git" "$NELUA_PATH";
+	cd $NELUA_PATH;
 	make;
 	
-	Remove-item -Path $NELUA_PATH\\.git -Force;
+	Remove-item -Path $NELUA_PATH\.git -Force;
 	rm -r $NELUA_PATH\.github;
 	rm -r $NELUA_PATH\docs;
 	rm -r $NELUA_PATH\examples;
@@ -263,7 +264,27 @@ if(($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'nelua'
 # makelua install luajit
 if(($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'luajit')){
 	$LUAJIT_PATH = "$MAKELUA_PATH\luajit-lang";
-	EchoColor "luajit is still unavailable" 'Red';
+	EchoColor "Installing Luajit" 'Green';
+	if (Test-Path -Path $LUAJIT_PATH) {
+		rm -r $LUAJIT_PATH;
+	}
+	
+	git clone "https://github.com/LuaJIT/LuaJIT.git" "$LUAJIT_PATH";
+	cd $LUAJIT_PATH;
+	make;
+	
+	mv $LUAJIT_PATH\src\luajit.exe $LUAJIT_PATH\luajit.exe;
+	mv $LUAJIT_PATH\src\lua51.dll $LUAJIT_PATH\lua51.dll;
+	Remove-item -Path $LUAJIT_PATH\.git -Force;
+	rm -r $LUAJIT_PATH\doc;
+	rm -r $LUAJIT_PATH\dynasm;
+	rm -r $LUAJIT_PATH\etc;
+	rm -r $LUAJIT_PATH\src;
+	rm $LUAJIT_PATH\.gitignore;
+	rm $LUAJIT_PATH\COPYRIGHT;
+	rm $LUAJIT_PATH\Makefile;
+	rm $LUAJIT_PATH\README;
+	EchoColor "Nelua Installed" 'Green';
 	pause;
 	exit;
 }
