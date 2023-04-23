@@ -297,7 +297,8 @@ if(($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'luajit
 
 # args error
 if($ARG_ERR -eq $True) {
-	echo 'Non-existent Options';
+	echo 'Non-Existent Options';
+	pause;
 	exit;
 }
 
