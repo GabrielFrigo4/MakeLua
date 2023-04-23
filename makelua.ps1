@@ -45,7 +45,7 @@ function GetLuaRocksVersionWeb{
 
 # informations
 $CURRENT_OS = (Get-CimInstance -ClassName CIM_OperatingSystem).Caption;
-$MAKELUA_VERSION = '1.1.1';
+$MAKELUA_VERSION = '1.1.2';
 # basic paths
 $CURRENT_PATH = pwd;
 $SCRIPT_PATH = $PSScriptRoot;
@@ -88,14 +88,16 @@ MakeLua info:
 MakeLua uses:
  - powershell 7 or greater
  - msvc or llvm or gnu
+ - make
+ - git
  - curl
  - tar
  - 7z
 
 (MakeLua) options: (help / install / uninstall)
  - help: show help information (this)
- - install: install lua and luarocks
- - uninstall: uninstall lua and luarocks
+ - install: install lua(and luarocks)/nelua/luajit
+ - uninstall: uninstall makelua and lua, nelua, luajit, luarocks
 
 (MakeLua install) options: (lua / nelua / luajit)
  - lua
@@ -230,7 +232,9 @@ if(($args.Count -ge 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'lua'))
 # makelua install nelua
 if(($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'nelua')){
 	$NELUA_PATH = "$MAKELUA_PATH\nelua-lang";
+	$ARG_ERR = $False;
 	EchoColor "Installing Nelua" 'Green';
+	
 	if (Test-Path -Path $NELUA_PATH) {
 		rm -r $NELUA_PATH;
 	}
@@ -264,7 +268,9 @@ if(($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'nelua'
 # makelua install luajit
 if(($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'luajit')){
 	$LUAJIT_PATH = "$MAKELUA_PATH\luajit-lang";
+	$ARG_ERR = $False;
 	EchoColor "Installing Luajit" 'Green';
+	
 	if (Test-Path -Path $LUAJIT_PATH) {
 		rm -r $LUAJIT_PATH;
 	}
@@ -291,7 +297,7 @@ if(($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'luajit
 
 # args error
 if($ARG_ERR -eq $True) {
-	echo 'args count overflow';
+	echo 'Non-existent Options';
 	exit;
 }
 
