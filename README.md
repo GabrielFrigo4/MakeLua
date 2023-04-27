@@ -7,7 +7,10 @@ MakeLua is a installer lua/nelua/luajit in windows
 [Nelua](https://nelua.io/) is a language type lua
 
     echo "Installing Nelua"
-    git clone https://github.com/edubart/nelua-lang.git && cd nelua-lang && make
+    git clone https://github.com/edubart/nelua-lang.git 
+    cd nelua-lang 
+    make
+    
     Remove-item -Path .\.git -Force
     rm -r .github
     rm -r docs
