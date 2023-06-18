@@ -68,7 +68,7 @@ MakeLua is a installer lua/nelua/luajit in windows
 
     echo "Installing Lua"
     export LUA_VER=5.4
-    export LUA_LONG_VER=$LUA_VER.4
+    export LUA_LONG_VER=$LUA_VER.6
     sudo apt install -y liblua$LUA_VER-dev liblua$LUA_VER-0-dbg liblua$LUA_VER-0
     curl -R -O http://www.lua.org/ftp/lua-$LUA_LONG_VER.tar.gz
     tar -zxf lua-$LUA_LONG_VER.tar.gz
