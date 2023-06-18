@@ -1,13 +1,16 @@
-# MakeLua
+# <img src="https://user-images.githubusercontent.com/66432268/234748876-331de0ba-519b-4c47-a04a-83b14b1d1720.png" width="48" /> MakeLua
 MakeLua is a installer lua/nelua/luajit in windows
  - to update luarocks version use: "sudo luarocks config --scope system lua_version 5.4"
  - to ser var in luarocks use: "luarocks config variables.VAR_NAME VAR_VALUE"
 
-# Nelua (In Windows)
-Is a language type lua (https://nelua.io/)
+# <img src="https://nelua.io/assets/img/nelua-logo-64px.png" width="48" /> Nelua (In Windows)
+[Nelua](https://nelua.io/) is a language type lua
 
     echo "Installing Nelua"
-    git clone https://github.com/edubart/nelua-lang.git && cd nelua-lang && make
+    git clone https://github.com/edubart/nelua-lang.git 
+    cd nelua-lang 
+    make
+    
     Remove-item -Path .\.git -Force
     rm -r .github
     rm -r docs
@@ -28,7 +31,7 @@ Is a language type lua (https://nelua.io/)
     echo "Nelua Installed"
     
     
-# Lua In linux (Debian)
+# <img src="https://user-images.githubusercontent.com/66432268/234749103-1b1366c4-6b5a-438a-be0e-3444c661a2b4.png" width="48" /> Lua In linux (Debian)
 (dpkg) to get lua and luarocks use:
 
     echo "Installing Lua"
