@@ -45,7 +45,7 @@ function GetLuaRocksVersionWeb{
 
 # informations
 $CURRENT_OS = (Get-CimInstance -ClassName CIM_OperatingSystem).Caption;
-$MAKELUA_VERSION = '1.1.2';
+$MAKELUA_VERSION = '1.1.3';
 # basic paths
 $CURRENT_PATH = pwd;
 $SCRIPT_PATH = $PSScriptRoot;
@@ -269,18 +269,20 @@ if(($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'nelua'
 if(($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'luajit')){
 	$LUAJIT_PATH = "$MAKELUA_PATH\luajit-lang";
 	$ARG_ERR = $False;
-	EchoColor "Installing Luajit" 'Green';
+	EchoColor "Installing LuaJIT" 'Green';
 	
 	if (Test-Path -Path $LUAJIT_PATH) {
 		rm -r $LUAJIT_PATH;
 	}
 	
 	git clone "https://github.com/LuaJIT/LuaJIT.git" "$LUAJIT_PATH";
+	mkdir $LUAJIT_PATH\lua;
 	cd $LUAJIT_PATH;
 	make;
 	
 	mv $LUAJIT_PATH\src\luajit.exe $LUAJIT_PATH\luajit.exe;
 	mv $LUAJIT_PATH\src\lua51.dll $LUAJIT_PATH\lua51.dll;
+	mv $LUAJIT_PATH\src\jit $LUAJIT_PATH\lua\jit;
 	Remove-item -Path $LUAJIT_PATH\.git -Force;
 	rm -r $LUAJIT_PATH\doc;
 	rm -r $LUAJIT_PATH\dynasm;
@@ -290,7 +292,7 @@ if(($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'luajit
 	rm $LUAJIT_PATH\COPYRIGHT;
 	rm $LUAJIT_PATH\Makefile;
 	rm $LUAJIT_PATH\README;
-	EchoColor "Nelua Installed" 'Green';
+	EchoColor "LuaJIT Installed" 'Green';
 	pause;
 	exit;
 }
