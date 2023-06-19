@@ -45,7 +45,7 @@ function GetLuaRocksVersionWeb{
 
 # informations
 $CURRENT_OS = (Get-CimInstance -ClassName CIM_OperatingSystem).Caption;
-$MAKELUA_VERSION = '1.1.3';
+$MAKELUA_VERSION = '1.1.4';
 # basic paths
 $CURRENT_PATH = pwd;
 $SCRIPT_PATH = $PSScriptRoot;
@@ -276,13 +276,19 @@ if(($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'luajit
 	}
 	
 	git clone "https://github.com/LuaJIT/LuaJIT.git" "$LUAJIT_PATH";
-	mkdir $LUAJIT_PATH\lua;
+	mkdir $LUAJIT_PATH\lua | Out-Null;
+	mkdir $LUAJIT_PATH\include | Out-Null;
 	cd $LUAJIT_PATH;
 	make;
 	
 	mv $LUAJIT_PATH\src\luajit.exe $LUAJIT_PATH\luajit.exe;
 	mv $LUAJIT_PATH\src\lua51.dll $LUAJIT_PATH\lua51.dll;
 	mv $LUAJIT_PATH\src\jit $LUAJIT_PATH\lua\jit;
+	mv $LUAJIT_PATH\src\lauxlib.h $LUAJIT_PATH\include\lauxlib.h;
+	mv $LUAJIT_PATH\src\lua.h $LUAJIT_PATH\include\lua.h;
+	mv $LUAJIT_PATH\src\lua.hpp $LUAJIT_PATH\include\lua.hpp;
+	mv $LUAJIT_PATH\src\luaconf.h $LUAJIT_PATH\include\luaconf.h;
+	mv $LUAJIT_PATH\src\lualib.h $LUAJIT_PATH\include\lualib.h;
 	Remove-item -Path $LUAJIT_PATH\.git -Force;
 	rm -r $LUAJIT_PATH\doc;
 	rm -r $LUAJIT_PATH\dynasm;
@@ -304,9 +310,11 @@ if($ARG_ERR -eq $True) {
 	exit;
 }
 
+# makelua install lua
 $LUA_VERSION_ARRAY = ($LUA_VERSION).Split('.');
 $LUA_VERSION_NAME = ($LUA_VERSION_ARRAY[0] + $LUA_VERSION_ARRAY[1]) -as [string];
 $LUAROCKS_CONFIG_FILE = "config-$(($LUA_VERSION_ARRAY[0] + '.' + $LUA_VERSION_ARRAY[1]) -as [string]).lua";
+
 #luarocks information files
 if (-not(Test-Path -Path "$LUAROCKS_SYSTEM_PATH\$LUAROCKS_CONFIG_FILE" -PathType Leaf)) {
 	new-item "$LUAROCKS_SYSTEM_PATH\$LUAROCKS_CONFIG_FILE" | Out-Null;
@@ -330,6 +338,7 @@ mv luarocks-$LUAROCKS_VERSION-windows-64/luarocks.exe luarocks.exe;
 mv luarocks-$LUAROCKS_VERSION-windows-64/luarocks-admin.exe luarocks-admin.exe;
 rm -r luarocks-$LUAROCKS_VERSION-windows-64;
 rm luarocks-$LUAROCKS_VERSION-windows-64.zip;
+
 echo 'import lua code';
 curl -R -O http://www.lua.org/ftp/lua-$LUA_VERSION.tar.gz;
 tar zxf lua-$LUA_VERSION.tar.gz;
