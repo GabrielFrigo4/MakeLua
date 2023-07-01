@@ -45,7 +45,7 @@ function GetLuaRocksVersionWeb{
 
 # informations
 $CURRENT_OS = (Get-CimInstance -ClassName CIM_OperatingSystem).Caption;
-$MAKELUA_VERSION = '1.1.4';
+$MAKELUA_VERSION = '1.1.5';
 # basic paths
 $CURRENT_PATH = pwd;
 $SCRIPT_PATH = $PSScriptRoot;
@@ -588,11 +588,20 @@ if (-not(Test-Path -Path lua.bat -PathType Leaf)) {
 	new-item wlua.bat | Out-Null;
 } if (-not(Test-Path -Path makelua.bat -PathType Leaf)) {
 	new-item makelua.bat | Out-Null;
+} if (-not(Test-Path -Path init-rocks.lua -PathType Leaf)) {
+	new-item init-rocks.lua | Out-Null;
 }
 set-content lua.bat "@call `"%~dp0lua$LUA_VERSION_NAME`" %*";
 set-content luac.bat "@call `"%~dp0luac$LUA_VERSION_NAME`" %*";
 set-content wlua.bat "@call `"%~dp0wlua$LUA_VERSION_NAME`" %*";
 set-content makelua.bat "@call pwsh -file `"%~dp0makelua.ps1`" %*";
+set-content init-rocks.lua 'local app_data = os.getenv ("APPDATA")
+local lua_version = _VERSION:sub(5,7)
+local luarocks_path = ";" .. app_data .. "\\luarocks\\share\\lua\\" .. lua_version .. "\\?.lua"
+local luarocks_cpath = ";" .. app_data .. "\\luarocks\\lib\\lua\\" .. lua_version .. "\\?.dll"
+
+package.path = package.path .. luarocks_path
+package.cpath = package.cpath .. luarocks_cpath'
 echo 'finish script';
 cd $CURRENT_PATH;
 pause;
