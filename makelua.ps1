@@ -8,18 +8,18 @@
 
 $T = $host.ui.RawUI.ForegroundColor;
 
-function SetColor{
+function SetColor {
 	param(
 		[String] $color
 	)
 	$host.ui.RawUI.ForegroundColor = $color;
 }
 
-function ResetColor{
+function ResetColor {
 	$host.ui.RawUI.ForegroundColor = $T;
 }
 
-function EchoColor{
+function EchoColor {
 	param(
 		[String] $echo,
 		[String] $color
@@ -29,23 +29,23 @@ function EchoColor{
 	ResetColor;
 }
 
-function Newline{
+function Newline {
 	echo '';
 }
 
-function GetLuaVersionWeb{
+function GetLuaVersionWeb {
 	$Link = 'https://www.lua.org/ftp/';
 	return (Invoke-WebRequest -Uri $Link).links.href[14].Replace('lua-', '').Replace('.tar.gz', '') -as [string];
 }
 
-function GetLuaRocksVersionWeb{
+function GetLuaRocksVersionWeb {
 	$Link = 'http://luarocks.github.io/luarocks/releases/';
 	return (Invoke-WebRequest -Uri $Link).links.href[9].Replace('luarocks-', '').Replace('-windows-64.zip', '') -as [string];
 }
 
 # informations
 $CURRENT_OS = (Get-CimInstance -ClassName CIM_OperatingSystem).Caption;
-$MAKELUA_VERSION = '1.1.5';
+$MAKELUA_VERSION = '1.1.6';
 # basic paths
 $CURRENT_PATH = pwd;
 $SCRIPT_PATH = $PSScriptRoot;
@@ -68,14 +68,14 @@ if (-not(Test-Path -Path $LUAROCKS_ROAMING_PATH)) {
 cd $PROGAM_FILES_PATH;
 
 # makelua noone arg
-if($args.Count -eq 0){
+if ($args.Count -eq 0) {
 	Write-Host 'type: "makelua help" for more information';
 	cd $CURRENT_PATH;
 	exit;
 }
 
 # makelua help
-if(($args.Count -ge 1) -and ($Args[0] -eq 'help')){
+if (($args.Count -ge 1) -and ($Args[0] -eq 'help')) {
 	$LUA_VERSION = GetLuaVersionWeb;
 	$LUAROCKS_VERSION = GetLuaRocksVersionWeb;
 	Write-Host "|MAKE_LUA HELP|
@@ -119,8 +119,7 @@ MakeLua is a installer";
 
 # get admin mode
 $IS_ADMIN = [bool](([System.Security.Principal.WindowsIdentity]::GetCurrent()).groups -match "S-1-5-32-544");
-if(-not $IS_ADMIN)
-{
+if (-not $IS_ADMIN) {
 	$params = @{
 		FilePath = 'pwsh';
 		Verb = 'RunAs';
@@ -136,7 +135,7 @@ if(-not $IS_ADMIN)
 }
 
 # makelua uninstall
-if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
+if (($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')) {
 	sleep 2;
 	if (Test-Path -Path $LUAROCKS_ROAMING_PATH) {
 		rm -r $LUAROCKS_ROAMING_PATH -Force;
@@ -159,7 +158,7 @@ if(($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')){
 $ARG_ERR = $True;
 
 # makelua install lua options: (link, compiler, optimize, lua_version, luarocks_version)
-if(($args.Count -ge 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'lua')){
+if (($args.Count -ge 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'lua')) {
 	$LUA_PATH = "$MAKELUA_PATH\lua-lang";
 	$ARG_ERR = $False;
 	EchoColor "Installing Lua" 'Green';
@@ -180,7 +179,7 @@ if(($args.Count -ge 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'lua'))
 	}
 	mkdir $LUA_PATH;
 	
-	if (-not($MAKELUA_PATH -eq $SCRIPT_PATH)){
+	if (-not($MAKELUA_PATH -eq $SCRIPT_PATH)) {
 		mv "$SCRIPT_PATH\makelua.ps1" "$MAKELUA_PATH\makelua.ps1"
 	}
 	
@@ -188,35 +187,35 @@ if(($args.Count -ge 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'lua'))
 	EchoColor 'MakeLua Options Using:' 'Green';
 	$ERR = $False;
 	
-	if($Args.Count -ge 3){
+	if ($Args.Count -ge 3) {
 		$IS_DYNAMIC_OR_STATIC = $Args[2] -as [string]; #dynamic static || link options	
 	} else {
 		$IS_DYNAMIC_OR_STATIC='dynamic';
 	}
 	EchoColor " - link: $IS_DYNAMIC_OR_STATIC" 'Green';
 	
-	if($Args.Count -ge 4){
+	if ($Args.Count -ge 4) {
 		$COMPILER = $Args[3] -as [string]; #msvc llvm gnu || compiler options	
 	} else {
 		$COMPILER = 'msvc';
 	}
 	EchoColor " - compiler: $COMPILER" 'Green';
 	
-	if($Args.Count -ge 5){
+	if ($Args.Count -ge 5) {
 		$OPTIMIZE = $Args[4] -as [string]; #default size speed || optimize options	
 	} else {
 		$OPTIMIZE = 'default';
 	}
 	EchoColor " - optimize: $OPTIMIZE" 'Green';
 	
-	if($Args.Count -ge 6){
+	if ($Args.Count -ge 6) {
 		$LUA_VERSION = $Args[5] -as [string]; #lua version
 	} else {
 		$LUA_VERSION = GetLuaVersionWeb;
 	}
 	EchoColor " - lua_version: $LUA_VERSION" 'Green';
 	
-	if($Args.Count -ge 7){
+	if ($Args.Count -ge 7) {
 		$LUAROCKS_VERSION = $Args[6] -as [string]; #luarocks version
 	} else {
 		$LUAROCKS_VERSION = GetLuaRocksVersionWeb;
@@ -224,13 +223,13 @@ if(($args.Count -ge 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'lua'))
 	EchoColor " - luarocks_version: $LUAROCKS_VERSION" 'Green';
 		
 	Newline;
-	if($ERR -eq $True){
+	if ($ERR -eq $True) {
 		exit;
 	}
 }
 
 # makelua install nelua
-if(($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'nelua')){
+if (($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'nelua')) {
 	$NELUA_PATH = "$MAKELUA_PATH\nelua-lang";
 	$ARG_ERR = $False;
 	EchoColor "Installing Nelua" 'Green';
@@ -266,7 +265,7 @@ if(($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'nelua'
 }
 
 # makelua install luajit
-if(($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'luajit')){
+if (($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'luajit')) {
 	$LUAJIT_PATH = "$MAKELUA_PATH\luajit-lang";
 	$ARG_ERR = $False;
 	EchoColor "Installing LuaJIT" 'Green';
@@ -304,7 +303,7 @@ if(($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'luajit
 }
 
 # args error
-if($ARG_ERR -eq $True) {
+if ($ARG_ERR -eq $True) {
 	echo 'Non-Existent Options';
 	pause;
 	exit;
@@ -368,14 +367,14 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine,
     return main(__argc, __argv);
 }';
 
-if ($COMPILER -eq 'msvc'){
-	if($OPTIMIZE -eq 'default'){
+if ($COMPILER -eq 'msvc') {
+	if ($OPTIMIZE -eq 'default') {
 		$O = 'Ot'
 	}
-	elseif($OPTIMIZE -eq 'speed'){
+	elseif ($OPTIMIZE -eq 'speed') {
 		$O = 'O2'
 	}
-	elseif($OPTIMIZE -eq 'size'){
+	elseif ($OPTIMIZE -eq 'size') {
 		$O = 'O1'
 	}
 	$startEnv = $env:path;
@@ -383,13 +382,13 @@ if ($COMPILER -eq 'msvc'){
 		param(
 			[String] $scriptName
 		)
-		if(Test-Path 'C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build'){
+		if(Test-Path 'C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build') {
 			$env:path = $env:path + ';C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build';
-		} elseif(Test-Path 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build'){
+		} elseif(Test-Path 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build') {
 			$env:path = $env:path + ';C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build';
-		} elseif(Test-Path 'C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build'){
+		} elseif(Test-Path 'C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build') {
 			$env:path = $env:path + ';C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build';
-		} elseif(Test-Path 'C:\Program Files (x86)\Microsoft Visual Studio\2015\Community\VC\Auxiliary\Build'){
+		} elseif(Test-Path 'C:\Program Files (x86)\Microsoft Visual Studio\2015\Community\VC\Auxiliary\Build') {
 			$env:path = $env:path + ';C:\Program Files (x86)\Microsoft Visual Studio\2015\Community\VC\Auxiliary\Build';
 		} else {
 			Write-Host "Microsoft Visual Studio path don't find";
@@ -411,10 +410,10 @@ if ($COMPILER -eq 'msvc'){
 	Invoke-VsScript vcvars64.bat;
 	echo 'using MSVC compiler';
 	echo 'start build .c files';
-	if($IS_DYNAMIC_OR_STATIC -eq 'dynamic'){
+	if ($IS_DYNAMIC_OR_STATIC -eq 'dynamic') {
 		cl /MD /$O /c /DLUA_BUILD_AS_DLL *.c | Out-Null;
 	}
-	elseif($IS_DYNAMIC_OR_STATIC -eq 'static'){
+	elseif ($IS_DYNAMIC_OR_STATIC -eq 'static') {
 		cl /MD /$O /c /DLUA_BUILD_AS_LIB *.c | Out-Null;
 	}
 	ren lua.obj lua.o;
@@ -425,39 +424,39 @@ if ($COMPILER -eq 'msvc'){
 	echo "start build lua$LUA_VERSION_NAME-static.lib";
 	lib /OUT:lua$LUA_VERSION_NAME-static.lib *.obj | Out-Null;
 	echo "start build lua$LUA_VERSION_NAME.exe";
-	if($IS_DYNAMIC_OR_STATIC -eq 'dynamic'){
+	if ($IS_DYNAMIC_OR_STATIC -eq 'dynamic') {
 		link /subsystem:console /OUT:lua$LUA_VERSION_NAME.exe lua.o lua$LUA_VERSION_NAME.lib | Out-Null;	
 	}
-	elseif($IS_DYNAMIC_OR_STATIC -eq 'static'){
+	elseif ($IS_DYNAMIC_OR_STATIC -eq 'static') {
 		link /subsystem:console /OUT:lua$LUA_VERSION_NAME.exe lua$LUA_VERSION_NAME-static.lib lua.o | Out-Null;	
 	}
 	echo "start build wlua$LUA_VERSION_NAME.exe";
-	if($IS_DYNAMIC_OR_STATIC -eq 'dynamic'){
+	if ($IS_DYNAMIC_OR_STATIC -eq 'dynamic') {
 		link /subsystem:windows /defaultlib:shell32.lib /OUT:wlua$LUA_VERSION_NAME.exe lua.o wmain.o lua$LUA_VERSION_NAME.lib | Out-Null;	
 	}
-	elseif($IS_DYNAMIC_OR_STATIC -eq 'static'){
+	elseif ($IS_DYNAMIC_OR_STATIC -eq 'static') {
 		link /subsystem:windows /defaultlib:shell32.lib /OUT:wlua$LUA_VERSION_NAME.exe lua.o wmain.o lua$LUA_VERSION_NAME-static.lib | Out-Null;
 	}
 	echo "start build luac$LUA_VERSION_NAME.exe";
 	link /subsystem:console /OUT:luac$LUA_VERSION_NAME.exe luac.o lua$LUA_VERSION_NAME-static.lib | Out-Null;
 	echo 'finish build';
 	RestartEnv;
-} elseif ($COMPILER -eq 'llvm'){
-	if($OPTIMIZE -eq 'default'){
+} elseif ($COMPILER -eq 'llvm') {
+	if ($OPTIMIZE -eq 'default') {
 		$O = 'O3'
 	}
-	elseif($OPTIMIZE -eq 'speed'){
+	elseif ($OPTIMIZE -eq 'speed') {
 		$O = 'Ofast'
 	}
-	elseif($OPTIMIZE -eq 'size'){
+	elseif ($OPTIMIZE -eq 'size') {
 		$O = 'Oz'
 	}
 	echo 'using LLVM compiler';
 	echo 'start build .c files';
-	if($IS_DYNAMIC_OR_STATIC -eq 'dynamic'){
+	if ($IS_DYNAMIC_OR_STATIC -eq 'dynamic') {
 		clang -MD -$O -c -DLUA_BUILD_AS_DLL *.c | Out-Null;
 	}
-	elseif($IS_DYNAMIC_OR_STATIC -eq 'static'){
+	elseif ($IS_DYNAMIC_OR_STATIC -eq 'static') {
 		clang -MD -$O -c -DLUA_BUILD_AS_LIB *.c | Out-Null;
 	}
 	ren lua.o lua.obj;
@@ -468,30 +467,30 @@ if ($COMPILER -eq 'msvc'){
 	echo "start build lua$LUA_VERSION_NAME-static.lib";
 	llvm-lib /OUT:lua$LUA_VERSION_NAME-static.lib *.o | Out-Null;
 	echo "start build lua$LUA_VERSION_NAME.exe";
-	if($IS_DYNAMIC_OR_STATIC -eq 'dynamic'){
+	if ($IS_DYNAMIC_OR_STATIC -eq 'dynamic') {
 		clang -$O -DNDEBUG -static lua$LUA_VERSION_NAME.lib lua.obj -$('Wl,-subsystem:console') -o lua$LUA_VERSION_NAME.exe | Out-Null;
 	}
-	elseif($IS_DYNAMIC_OR_STATIC -eq 'static'){
+	elseif ($IS_DYNAMIC_OR_STATIC -eq 'static') {
 		clang -$O -DNDEBUG -static lua$LUA_VERSION_NAME-static.lib lua.obj -$('Wl,-subsystem:console') -o lua$LUA_VERSION_NAME.exe | Out-Null;
 	}
 	echo "start build wlua$LUA_VERSION_NAME.exe";
-	if($IS_DYNAMIC_OR_STATIC -eq 'dynamic'){
+	if ($IS_DYNAMIC_OR_STATIC -eq 'dynamic') {
 		clang -$O -DNDEBUG -static lua$LUA_VERSION_NAME.lib lua.obj wmain.obj -$('Wl,-subsystem:windows') -$('Wl,-defaultlib:shell32.lib') -o wlua$LUA_VERSION_NAME.exe | Out-Null;
 	}
-	elseif($IS_DYNAMIC_OR_STATIC -eq 'static'){
+	elseif ($IS_DYNAMIC_OR_STATIC -eq 'static') {
 		clang -$O -DNDEBUG -static lua$LUA_VERSION_NAME-static.lib lua.obj wmain.obj -$('Wl,-subsystem:windows') -$('Wl,-defaultlib:shell32.lib') -o wlua$LUA_VERSION_NAME.exe | Out-Null;
 	}
 	echo "start build luac$LUA_VERSION_NAME.exe";
 	clang -$O -DNDEBUG -static lua$LUA_VERSION_NAME-static.lib luac.obj -$('Wl,-subsystem:console') -o luac$LUA_VERSION_NAME.exe | Out-Null;
 	echo 'finish build';
-} elseif ($COMPILER -eq 'gnu'){
-	if($OPTIMIZE -eq 'default'){
+} elseif ($COMPILER -eq 'gnu') {
+	if ($OPTIMIZE -eq 'default') {
 		$O = 'O3'
 	}
-	elseif($OPTIMIZE -eq 'speed'){
+	elseif ($OPTIMIZE -eq 'speed') {
 		$O = 'Ofast'
 	}
-	elseif($OPTIMIZE -eq 'size'){
+	elseif ($OPTIMIZE -eq 'size') {
 		$O = 'Oz'
 	}
 	echo 'using GNU compiler';
@@ -506,24 +505,24 @@ if ($COMPILER -eq 'msvc'){
 	ar -rcs lua$LUA_VERSION_NAME.lib lapi.o lcode.o lctype.o ldebug.o ldo.o ldump.o lfunc.o lgc.o llex.o lmem.o lobject.o lopcodes.o lparser.o lstate.o lstring.o ltable.o ltm.o lundump.o lvm.o lzio.o lauxlib.o lbaselib.o lcorolib.o ldblib.o liolib.o lmathlib.o loadlib.o loslib.o lstrlib.o ltablib.o lutf8lib.o linit.o;
 	cp lua$LUA_VERSION_NAME.lib liblua$LUA_VERSION_NAME.a;
 	echo "start build lua$LUA_VERSION_NAME.exe";
-	if($IS_DYNAMIC_OR_STATIC -eq 'dynamic'){
+	if ($IS_DYNAMIC_OR_STATIC -eq 'dynamic') {
 		gcc -$O -DNDEBUG -static-libgcc -static lua.obj lua$LUA_VERSION_NAME.dll -W -o lua$LUA_VERSION_NAME.exe;
 	}
-	elseif($IS_DYNAMIC_OR_STATIC -eq 'static'){
+	elseif ($IS_DYNAMIC_OR_STATIC -eq 'static') {
 		gcc -$O -DNDEBUG -static-libgcc -static lua.obj -L. -Bstatic -$('llua' + $LUA_VERSION_NAME) -W -o lua$LUA_VERSION_NAME.exe;
 	}
 	echo "start build wlua$LUA_VERSION_NAME.exe";
-	if($IS_DYNAMIC_OR_STATIC -eq 'dynamic'){
+	if ($IS_DYNAMIC_OR_STATIC -eq 'dynamic') {
 		gcc -mwindows -$O -DNDEBUG -static-libgcc -static lua.obj lua$LUA_VERSION_NAME.dll -W -o wlua$LUA_VERSION_NAME.exe;
 	}
-	elseif($IS_DYNAMIC_OR_STATIC -eq 'static'){
+	elseif ($IS_DYNAMIC_OR_STATIC -eq 'static') {
 		gcc -mwindows -$O -DNDEBUG -static-libgcc -static lua.obj -L. -Bstatic -$('llua' + $LUA_VERSION_NAME) -W -o wlua$LUA_VERSION_NAME.exe;
 	}
 	echo "start build luac$LUA_VERSION_NAME.exe";
-	if($IS_DYNAMIC_OR_STATIC -eq 'dynamic'){
+	if ($IS_DYNAMIC_OR_STATIC -eq 'dynamic') {
 		gcc -$O -DNDEBUG -static-libgcc -static luac.obj lua$LUA_VERSION_NAME.dll -W -o luac$LUA_VERSION_NAME.exe;
 	}
-	elseif($IS_DYNAMIC_OR_STATIC -eq 'static'){
+	elseif ($IS_DYNAMIC_OR_STATIC -eq 'static') {
 		gcc -$O -DNDEBUG -static-libgcc -static luac.obj -L. -Bstatic -$('llua' + $LUA_VERSION_NAME) -W -o luac$LUA_VERSION_NAME.exe;
 	}
 	echo 'finish build';
@@ -588,20 +587,26 @@ if (-not(Test-Path -Path lua.bat -PathType Leaf)) {
 	new-item wlua.bat | Out-Null;
 } if (-not(Test-Path -Path makelua.bat -PathType Leaf)) {
 	new-item makelua.bat | Out-Null;
-} if (-not(Test-Path -Path init-rocks.lua -PathType Leaf)) {
-	new-item init-rocks.lua | Out-Null;
-}
+} 
 set-content lua.bat "@call `"%~dp0lua$LUA_VERSION_NAME`" %*";
 set-content luac.bat "@call `"%~dp0luac$LUA_VERSION_NAME`" %*";
 set-content wlua.bat "@call `"%~dp0wlua$LUA_VERSION_NAME`" %*";
 set-content makelua.bat "@call pwsh -file `"%~dp0makelua.ps1`" %*";
-set-content init-rocks.lua 'local app_data = os.getenv ("APPDATA")
+
+echo 'start create init lua files';
+if (-not(Test-Path -Path ./init)) {
+	mkdir init;
+}
+if (-not(Test-Path -Path init/rocks.lua -PathType Leaf)) {
+	new-item init/rocks.lua | Out-Null;
+}
+set-content init/rocks.lua 'local app_data = os.getenv ("APPDATA")
 local lua_version = _VERSION:sub(5,7)
 local luarocks_path = ";" .. app_data .. "\\luarocks\\share\\lua\\" .. lua_version .. "\\?.lua"
 local luarocks_cpath = ";" .. app_data .. "\\luarocks\\lib\\lua\\" .. lua_version .. "\\?.dll"
 
 package.path = package.path .. luarocks_path
-package.cpath = package.cpath .. luarocks_cpath'
+package.cpath = package.cpath .. luarocks_cpath';
 echo 'finish script';
 cd $CURRENT_PATH;
 pause;
