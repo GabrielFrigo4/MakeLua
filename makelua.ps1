@@ -1,36 +1,36 @@
-# makelua use powershell 7 or greater
-# makelua use msvc or llvm or gnu
-# makelua use make
-# makelua use git
-# makelua use curl
-# makelua use tar
-# makelua use 7z
+################################################################
+#	VARIABLES
+################################################################
 
-$T = $host.ui.RawUI.ForegroundColor;
+# versions
+$MAKELUA_VERSION = '1.2.0';
+$CURRENT_OS_VERSION = (Get-CimInstance -ClassName CIM_OperatingSystem).Caption;
 
-function SetColor {
-	param(
-		[String] $color
-	)
-	$host.ui.RawUI.ForegroundColor = $color;
-}
+# basic paths
+$CURRENT_PATH = pwd;
+$SCRIPT_PATH = $PSScriptRoot;
+$PROGAM_FILES_PATH = 'C:\Program Files';
 
-function ResetColor {
-	$host.ui.RawUI.ForegroundColor = $T;
-}
+# luarocks paths
+$LUAROCKS_ROAMING_PATH = "$env:USERPROFILE\AppData\Roaming\luarocks";
+$LUAROCKS_LOCAL_PATH = "$env:USERPROFILE\AppData\Local\LuaRocks";
+$LUAROCKS_SYSTEM_PATH = 'C:\Program Files\luarocks';
 
-function EchoColor {
-	param(
-		[String] $echo,
-		[String] $color
-	)
-	SetColor $color;
-	echo $echo;
-	ResetColor;
-}
+# makelua paths
+$MAKELUA_PATH = 'C:\Program Files\MakeLua';
+
+# colors
+$DefaultColors = @{
+	"ForegroundColor"=$host.ui.RawUI.ForegroundColor;
+	"BackgroundColor"=$host.ui.RawUI.BackgroundColor;
+};
+
+################################################################
+#	FUNCTIONS
+################################################################
 
 function Newline {
-	echo '';
+	Write-Host '';
 }
 
 function GetLuaVersionWeb {
@@ -43,19 +43,206 @@ function GetLuaRocksVersionWeb {
 	return (Invoke-WebRequest -Uri $Link).links.href[9].Replace('luarocks-', '').Replace('-windows-64.zip', '') -as [string];
 }
 
-# informations
-$CURRENT_OS = (Get-CimInstance -ClassName CIM_OperatingSystem).Caption;
-$MAKELUA_VERSION = '1.1.6';
-# basic paths
-$CURRENT_PATH = pwd;
-$SCRIPT_PATH = $PSScriptRoot;
-$PROGAM_FILES_PATH = 'C:\Program Files';
-# luarocks paths
-$LUAROCKS_ROAMING_PATH = "$env:USERPROFILE\AppData\Roaming\luarocks";
-$LUAROCKS_LOCAL_PATH = "$env:USERPROFILE\AppData\Local\LuaRocks";
-$LUAROCKS_SYSTEM_PATH = 'C:\Program Files\luarocks';
-# makelua paths
-$MAKELUA_PATH = 'C:\Program Files\MakeLua';
+function SetForegroundColor {
+	param(
+		[String] $foregroundColor
+	);
+	$host.ui.RawUI.ForegroundColor = $foregroundColor;
+}
+
+function SetBackgroundColor {
+	param(
+		[String] $backgroundColor
+	);
+	$host.ui.RawUI.BackgroundColor = $backgroundColor;
+}
+
+function SetColors {
+	param(
+		[String] $foregroundColor,
+		[String] $backgroundColor
+	);
+	SetForegroundColor $foregroundColor;
+	SetBackgroundColor $backgroundColor;
+}
+
+function ResetForegroundColor {
+	SetForegroundColor $DefaultColors.ForegroundColor;
+}
+
+function ResetBackgroundColor {
+	SetBackgroundColor $DefaultColors.BackgroundColor;
+}
+
+function ResetColors {
+	ResetForegroundColor;
+	ResetBackgroundColor;
+}
+
+function EchoForegroundColor {
+	param(
+		[String] $text,
+		[String] $backgroundColor
+	);
+	SetBackgroundColor $backgroundColor;
+	Write-Host $text;
+	ResetBackgroundColor;
+}
+
+function EchoForegroundColor {
+	param(
+		[String] $text,
+		[String] $foregroundColor
+	);
+	SetForegroundColor $foregroundColor;
+	Write-Host $text;
+	ResetForegroundColor;
+}
+
+function EchoColors {
+	param(
+		[String] $text,
+		[String] $foregroundColor,
+		[String] $backgroundColor
+	);
+	SetColors $foregroundColor $backgroundColor;
+	Write-Host $text;
+	ResetColors;
+}
+
+function Write-HostColored {
+<#
+.SYNOPSIS
+A wrapper around Write-Host that supports selective coloring of
+substrings.
+
+.DESCRIPTION
+In addition to accepting a default foreground and background color,
+you can embed one or more color specifications in the string to write, 
+using the following syntax:
+#<fgcolor>[:<bgcolor>]#<text>#
+
+<fgcolor> and <bgcolor> must be valid [ConsoleColor] values, such as 'green' or 'white' (case does not matter).
+Everything following the color specification up to the next '#' or, impliclitly, the end of the string
+is written in that color.
+
+Note that nesting of color specifications is not supported.
+As a corollary, any token that immediately follows a color specification is treated
+as text to write, even if it happens to be a technically valid color spec too.
+This allows you to use, e.g., 'The next word is #green#green#.', without fear
+of having the second '#green' be interpreted as a color specification as well.
+
+.PARAMETER ForegroundColor
+Specifies the default text color for all text portions
+for which no embedded foreground color is specified.
+
+.PARAMETER BackgroundColor
+Specifies the default background color for all text portions
+for which no embedded background color is specified.
+
+.PARAMETER NoNewline
+Output the specified string withpout a trailing newline.
+
+.NOTES
+While this function is convenient, it will be slow with many embedded colors, because,
+behind the scenes, Write-Host must be called for every colored span.
+
+.EXAMPLE
+Write-HostColored "#green#Green foreground.# Default colors. #blue:white#Blue on white."
+
+.EXAMPLE
+'#black#Black on white (by default).#Blue# Blue on white.' | Write-HostColored -BackgroundColor White
+
+#>
+    [CmdletBinding(ConfirmImpact='None', SupportsShouldProcess=$false, SupportsTransactions=$false)]
+    param(
+        [parameter(Position=0, ValueFromPipeline=$true)]
+        [string[]] $Text,
+        [switch] $NoNewline,
+        [ConsoleColor] $BackgroundColor =  $host.UI.RawUI.BackgroundColor,
+        [ConsoleColor] $ForegroundColor = $host.UI.RawUI.ForegroundColor
+    );
+
+    begin {
+        # If text was given as an operand, it'll be an array.
+        # Like Write-Host, we flatten the array into a single string
+        # using simple string interpolation (which defaults to separating elements with a space,
+        # which can be changed by setting $OFS).
+        if ($Text -ne $null) {
+            $Text = "$Text";
+        }
+    };
+
+    process {
+        if ($Text) {
+
+            # Start with the foreground and background color specified via
+            # -ForegroundColor / -BackgroundColor, or the current defaults.
+            $curFgColor = $ForegroundColor;
+            $curBgColor = $BackgroundColor;
+
+            # Split message into tokens by '#'.
+            # A token between to '#' instances is either the name of a color or text to write (in the color set by the previous token).
+            $tokens = $Text.split("#");
+
+            # Iterate over tokens.            
+            $prevWasColorSpec = $false;
+            foreach($token in $tokens) {
+
+                if (-not $prevWasColorSpec -and $token -match '^([a-z]+)(:([a-z]+))?$') { # a potential color spec.
+                    # If a token is a color spec, set the color for the next token to write.
+                    # Color spec can be a foreground color only (e.g., 'green'), or a foreground-background color pair (e.g., 'green:white')
+                    try {
+                        $curFgColor = [ConsoleColor]  $matches[1];
+                        $prevWasColorSpec = $true;
+                    } catch {}
+                    if ($matches[3]) {
+                        try {
+                            $curBgColor = [ConsoleColor]  $matches[3];
+                            $prevWasColorSpec = $true;
+                        } catch {}
+                    }
+                    if ($prevWasColorSpec) {
+                        continue;              
+                    }
+                }
+
+                $prevWasColorSpec = $false;
+
+                if ($token) {
+                    # A text token: write with (with no trailing line break).
+                    # !! In the ISE - as opposed to a regular PowerShell console window,
+                    # !! $host.UI.RawUI.ForegroundColor and $host.UI.RawUI.ForegroundColor inexcplicably 
+                    # !! report value -1, which causes an error when passed to Write-Host.
+                    # !! Thus, we only specify the -ForegroundColor and -BackgroundColor parameters
+                    # !! for values other than -1.
+                    $argsHash = @{};
+                    if ([int] $curFgColor -ne -1) { $argsHash += @{ 'ForegroundColor' = $curFgColor; } }
+                    if ([int] $curBgColor -ne -1) { $argsHash += @{ 'BackgroundColor' = $curBgColor; } }
+                    Write-Host -NoNewline @argsHash $token;
+                }
+
+                # Revert to default colors.
+                $curFgColor = $ForegroundColor;
+                $curBgColor = $BackgroundColor;
+
+            }
+        }
+        # Terminate with a newline, unless suppressed
+        if (-not $NoNewLine) { Newline; }
+    };
+}
+
+function EchoColored {
+	param(
+		[String] $text
+	);
+	Write-HostColored $text;
+}
+
+################################################################
+#	BEHAVIORS
+################################################################
 
 # create basic dirs
 if (-not(Test-Path -Path $LUAROCKS_ROAMING_PATH)) {
@@ -69,7 +256,7 @@ cd $PROGAM_FILES_PATH;
 
 # makelua noone arg
 if ($args.Count -eq 0) {
-	Write-Host 'type: "makelua help" for more information';
+	EchoColored 'type: #green#"makelua help"# for more information';
 	cd $CURRENT_PATH;
 	exit;
 }
@@ -78,15 +265,15 @@ if ($args.Count -eq 0) {
 if (($args.Count -ge 1) -and ($Args[0] -eq 'help')) {
 	$LUA_VERSION = GetLuaVersionWeb;
 	$LUAROCKS_VERSION = GetLuaRocksVersionWeb;
-	Write-Host "|MAKE_LUA HELP|
+	EchoColored "#green#|MAKE_LUA HELP|#
 	
-MakeLua info:
- - os: $CURRENT_OS
- - path: `"$SCRIPT_PATH`"
- - version: $MAKELUA_VERSION
+#green#MakeLua info:#
+ - Operating System: #green#$CURRENT_OS_VERSION#
+ - Path: #green#`"$SCRIPT_PATH`"#
+ - Version: #green#$MAKELUA_VERSION#
 
-MakeLua uses:
- - powershell 7 or greater
+#green#MakeLua uses:#
+ - powershell 7.X
  - msvc or llvm or gnu
  - make
  - git
@@ -94,24 +281,24 @@ MakeLua uses:
  - tar
  - 7z
 
-(MakeLua) options: (help / install / uninstall)
+#green#(MakeLua) options: (help / install / uninstall)#
  - help: show help information (this)
  - install: install lua(and luarocks)/nelua/luajit
  - uninstall: uninstall makelua and lua, nelua, luajit, luarocks
 
-(MakeLua install) options: (lua / nelua / luajit)
+#green#(MakeLua install) options: (lua / nelua / luajit)#
  - lua
  - nelua
  - luajit
 
-(MakeLua install lua) options: (link, compiler, optimize, lua_version, luarocks_version)
+#green#(MakeLua install lua) options: (link, compiler, optimize, lua_version, luarocks_version)#
  - link: dynamic static
  - compiler: msvc llvm gnu
  - optimize: default size speed
  - lua_version:
  - luarocks_version:
 
-to install use `"makelua install lua dynamic msvc default $LUA_VERSION $LUAROCKS_VERSION`"
+to install use #green#`"makelua install lua dynamic msvc default $LUA_VERSION $LUAROCKS_VERSION`"#
 MakeLua is a installer";
 	cd $CURRENT_PATH;
 	exit;
@@ -139,16 +326,16 @@ if (($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')) {
 	sleep 2;
 	if (Test-Path -Path $LUAROCKS_ROAMING_PATH) {
 		rm -r $LUAROCKS_ROAMING_PATH -Force;
-		EchoColor "remove $LUAROCKS_ROAMING_PATH successfully" 'Green';
+		EchoForegroundColor "remove $LUAROCKS_ROAMING_PATH successfully" 'Green';
 	} if (Test-Path -Path $LUAROCKS_LOCAL_PATH) {
 		rm -r $LUAROCKS_LOCAL_PATH -Force;
-		EchoColor "remove $LUAROCKS_LOCAL_PATH successfully" 'Green';
+		EchoForegroundColor "remove $LUAROCKS_LOCAL_PATH successfully" 'Green';
 	} if (Test-Path -Path $LUAROCKS_SYSTEM_PATH) {
 		rm -r $LUAROCKS_SYSTEM_PATH -Force;
-		EchoColor "remove $LUAROCKS_SYSTEM_PATH successfully" 'Green';
+		EchoForegroundColor "remove $LUAROCKS_SYSTEM_PATH successfully" 'Green';
 	} if (Test-Path -Path $MAKELUA_PATH) {
 		rm -r $MAKELUA_PATH -Force;
-		EchoColor "remove $MAKELUA_PATH successfully" 'Green';
+		EchoForegroundColor "remove $MAKELUA_PATH successfully" 'Green';
 	}
 	cd $CURRENT_PATH;
 	pause;
@@ -161,7 +348,7 @@ $ARG_ERR = $True;
 if (($args.Count -ge 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'lua')) {
 	$LUA_PATH = "$MAKELUA_PATH\lua-lang";
 	$ARG_ERR = $False;
-	EchoColor "Installing Lua" 'Green';
+	EchoForegroundColor "Installing Lua" 'Green';
 
 	#luarocks information dir
 	if (-not(Test-Path -Path $LUAROCKS_SYSTEM_PATH)) {
@@ -184,7 +371,7 @@ if (($args.Count -ge 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'lua')
 	}
 	
 	cd $LUA_PATH;
-	EchoColor 'MakeLua Options Using:' 'Green';
+	EchoForegroundColor 'MakeLua Options Using:' 'Green';
 	$ERR = $False;
 	
 	if ($Args.Count -ge 3) {
@@ -192,35 +379,35 @@ if (($args.Count -ge 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'lua')
 	} else {
 		$IS_DYNAMIC_OR_STATIC='dynamic';
 	}
-	EchoColor " - link: $IS_DYNAMIC_OR_STATIC" 'Green';
+	EchoForegroundColor " - link: $IS_DYNAMIC_OR_STATIC" 'Green';
 	
 	if ($Args.Count -ge 4) {
 		$COMPILER = $Args[3] -as [string]; #msvc llvm gnu || compiler options	
 	} else {
 		$COMPILER = 'msvc';
 	}
-	EchoColor " - compiler: $COMPILER" 'Green';
+	EchoForegroundColor " - compiler: $COMPILER" 'Green';
 	
 	if ($Args.Count -ge 5) {
 		$OPTIMIZE = $Args[4] -as [string]; #default size speed || optimize options	
 	} else {
 		$OPTIMIZE = 'default';
 	}
-	EchoColor " - optimize: $OPTIMIZE" 'Green';
+	EchoForegroundColor " - optimize: $OPTIMIZE" 'Green';
 	
 	if ($Args.Count -ge 6) {
 		$LUA_VERSION = $Args[5] -as [string]; #lua version
 	} else {
 		$LUA_VERSION = GetLuaVersionWeb;
 	}
-	EchoColor " - lua_version: $LUA_VERSION" 'Green';
+	EchoForegroundColor " - lua_version: $LUA_VERSION" 'Green';
 	
 	if ($Args.Count -ge 7) {
 		$LUAROCKS_VERSION = $Args[6] -as [string]; #luarocks version
 	} else {
 		$LUAROCKS_VERSION = GetLuaRocksVersionWeb;
 	}
-	EchoColor " - luarocks_version: $LUAROCKS_VERSION" 'Green';
+	EchoForegroundColor " - luarocks_version: $LUAROCKS_VERSION" 'Green';
 		
 	Newline;
 	if ($ERR -eq $True) {
@@ -232,7 +419,7 @@ if (($args.Count -ge 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'lua')
 if (($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'nelua')) {
 	$NELUA_PATH = "$MAKELUA_PATH\nelua-lang";
 	$ARG_ERR = $False;
-	EchoColor "Installing Nelua" 'Green';
+	EchoForegroundColor "Installing Nelua" 'Green';
 	
 	if (Test-Path -Path $NELUA_PATH) {
 		rm -r $NELUA_PATH;
@@ -259,7 +446,7 @@ if (($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'nelua
 	rm $NELUA_PATH\nelua;
 	rm $NELUA_PATH\Makefile;
 	rm $NELUA_PATH\README.md;
-	EchoColor "Nelua Installed" 'Green';
+	EchoForegroundColor "Nelua Installed" 'Green';
 	pause;
 	exit;
 }
@@ -268,7 +455,7 @@ if (($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'nelua
 if (($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'luajit')) {
 	$LUAJIT_PATH = "$MAKELUA_PATH\luajit-lang";
 	$ARG_ERR = $False;
-	EchoColor "Installing LuaJIT" 'Green';
+	EchoForegroundColor "Installing LuaJIT" 'Green';
 	
 	if (Test-Path -Path $LUAJIT_PATH) {
 		rm -r $LUAJIT_PATH;
@@ -297,7 +484,7 @@ if (($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'luaji
 	rm $LUAJIT_PATH\COPYRIGHT;
 	rm $LUAJIT_PATH\Makefile;
 	rm $LUAJIT_PATH\README;
-	EchoColor "LuaJIT Installed" 'Green';
+	EchoForegroundColor "LuaJIT Installed" 'Green';
 	pause;
 	exit;
 }
