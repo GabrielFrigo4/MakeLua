@@ -3,7 +3,7 @@
 ################################################################
 
 # versions
-$MAKELUA_VERSION = '1.2.1';
+$MAKELUA_VERSION = '1.3.0gama';
 $CURRENT_OS_VERSION = (Get-CimInstance -ClassName CIM_OperatingSystem).Caption;
 
 # basic paths
@@ -110,7 +110,7 @@ function WriteHost-Colors {
 	ResetColors;
 }
 
-function Write-HostColored {
+function WriteHost-Colored {
     [CmdletBinding(ConfirmImpact='None', SupportsShouldProcess=$false, SupportsTransactions=$false)]
     param(
         [parameter(Position=0, ValueFromPipeline=$true)]
@@ -170,13 +170,6 @@ function Write-HostColored {
     };
 }
 
-function WriteHost-Colored {
-	param(
-		[String] $text
-	);
-	Write-HostColored $text;
-}
-
 function CreateBasicDirs {
 	if (-not(Test-Path -Path $LUAROCKS_ROAMING_PATH)) {
 		mkdir $LUAROCKS_ROAMING_PATH | Out-Null;
@@ -234,10 +227,17 @@ function Makelua-Help {
 
 #green#(MakeLua) options: (help / install / uninstall)#
  - help: show help information (this)
- - install: install lua(and luarocks)/nelua/luajit
- - uninstall: uninstall makelua and lua, nelua, luajit, luarocks
+ - install: install makelua / lua (and luarocks) / nelua / luajit
+ - uninstall: uninstall makelua / lua (and luarocks) / nelua / luajit
 
-#green#(MakeLua install) options: (lua / nelua / luajit)#
+#green#(MakeLua install) options: (mklua / lua / nelua / luajit)#
+ - mklua
+ - lua
+ - nelua
+ - luajit
+
+#green#(MakeLua uninstall) options: (mklua / lua / nelua / luajit)#
+ - mklua
  - lua
  - nelua
  - luajit
@@ -250,9 +250,13 @@ function Makelua-Help {
  - luarocks_version:
 
 to install use #green#`"makelua install lua dynamic msvc default $LUA_VERSION $LUAROCKS_VERSION`"#
-MakeLua is a installer";
+MakeLua is a Lua installer";
 	Set-Location $CURRENT_PATH;
 	exit;
+}
+
+function Makelua-Install {
+
 }
 
 function Makelua-Uninstall {
@@ -275,6 +279,30 @@ function Makelua-Uninstall {
 	exit;
 }
 
+function Makelua-Install-Lua {
+
+}
+
+function Makelua-Install-Nelua {
+
+}
+
+function Makelua-Install-LuaJIT {
+
+}
+
+function Makelua-Uninstall-Lua {
+
+}
+
+function Makelua-Uninstall-Nelua {
+
+}
+
+function Makelua-Uninstall-LuaJIT {
+
+}
+
 ################################################################
 #	BEHAVIORS
 ################################################################
@@ -292,6 +320,10 @@ if (($args.Count -ge 1) -and ($Args[0] -eq 'help')) {
 }
 
 GetAdminMode;
+
+if (($args.Count -eq 1 ) -and ($args[0] -eq 'install')) {
+	Makelua-Install;
+}
 
 if (($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')) {
 	Makelua-Uninstall;
@@ -446,7 +478,7 @@ if (($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'luaji
 
 # args error
 if ($ARG_ERR -eq $True) {
-	Write-Host 'Non-Existent Options';
+	WriteHost-Colored '#red#Non-Existent# Options';
 	pause;
 	exit;
 }
