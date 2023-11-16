@@ -3,7 +3,7 @@
 ################################################################
 
 # versions
-$MAKELUA_VERSION = '1.2.0';
+$MAKELUA_VERSION = '1.2.1';
 $CURRENT_OS_VERSION = (Get-CimInstance -ClassName CIM_OperatingSystem).Caption;
 
 # basic paths
@@ -28,10 +28,6 @@ $DefaultColors = @{
 ################################################################
 #	FUNCTIONS
 ################################################################
-
-function Newline {
-	Write-Host '';
-}
 
 function GetLuaVersionWeb {
 	$Link = 'https://www.lua.org/ftp/';
@@ -79,7 +75,11 @@ function ResetColors {
 	ResetBackgroundColor;
 }
 
-function EchoForegroundColor {
+function WriteHost-Newline {
+	Write-Host;
+}
+
+function WriteHost-ForegroundColor {
 	param(
 		[String] $text,
 		[String] $backgroundColor
@@ -89,7 +89,7 @@ function EchoForegroundColor {
 	ResetBackgroundColor;
 }
 
-function EchoForegroundColor {
+function WriteHost-ForegroundColor {
 	param(
 		[String] $text,
 		[String] $foregroundColor
@@ -99,7 +99,7 @@ function EchoForegroundColor {
 	ResetForegroundColor;
 }
 
-function EchoColors {
+function WriteHost-Colors {
 	param(
 		[String] $text,
 		[String] $foregroundColor,
@@ -111,49 +111,6 @@ function EchoColors {
 }
 
 function Write-HostColored {
-<#
-.SYNOPSIS
-A wrapper around Write-Host that supports selective coloring of
-substrings.
-
-.DESCRIPTION
-In addition to accepting a default foreground and background color,
-you can embed one or more color specifications in the string to write, 
-using the following syntax:
-#<fgcolor>[:<bgcolor>]#<text>#
-
-<fgcolor> and <bgcolor> must be valid [ConsoleColor] values, such as 'green' or 'white' (case does not matter).
-Everything following the color specification up to the next '#' or, impliclitly, the end of the string
-is written in that color.
-
-Note that nesting of color specifications is not supported.
-As a corollary, any token that immediately follows a color specification is treated
-as text to write, even if it happens to be a technically valid color spec too.
-This allows you to use, e.g., 'The next word is #green#green#.', without fear
-of having the second '#green' be interpreted as a color specification as well.
-
-.PARAMETER ForegroundColor
-Specifies the default text color for all text portions
-for which no embedded foreground color is specified.
-
-.PARAMETER BackgroundColor
-Specifies the default background color for all text portions
-for which no embedded background color is specified.
-
-.PARAMETER NoNewline
-Output the specified string withpout a trailing newline.
-
-.NOTES
-While this function is convenient, it will be slow with many embedded colors, because,
-behind the scenes, Write-Host must be called for every colored span.
-
-.EXAMPLE
-Write-HostColored "#green#Green foreground.# Default colors. #blue:white#Blue on white."
-
-.EXAMPLE
-'#black#Black on white (by default).#Blue# Blue on white.' | Write-HostColored -BackgroundColor White
-
-#>
     [CmdletBinding(ConfirmImpact='None', SupportsShouldProcess=$false, SupportsTransactions=$false)]
     param(
         [parameter(Position=0, ValueFromPipeline=$true)]
@@ -164,10 +121,6 @@ Write-HostColored "#green#Green foreground.# Default colors. #blue:white#Blue on
     );
 
     begin {
-        # If text was given as an operand, it'll be an array.
-        # Like Write-Host, we flatten the array into a single string
-        # using simple string interpolation (which defaults to separating elements with a space,
-        # which can be changed by setting $OFS).
         if ($Text -ne $null) {
             $Text = "$Text";
         }
@@ -175,23 +128,15 @@ Write-HostColored "#green#Green foreground.# Default colors. #blue:white#Blue on
 
     process {
         if ($Text) {
-
-            # Start with the foreground and background color specified via
-            # -ForegroundColor / -BackgroundColor, or the current defaults.
             $curFgColor = $ForegroundColor;
             $curBgColor = $BackgroundColor;
 
-            # Split message into tokens by '#'.
-            # A token between to '#' instances is either the name of a color or text to write (in the color set by the previous token).
             $tokens = $Text.split("#");
-
-            # Iterate over tokens.            
+      
             $prevWasColorSpec = $false;
             foreach($token in $tokens) {
 
-                if (-not $prevWasColorSpec -and $token -match '^([a-z]+)(:([a-z]+))?$') { # a potential color spec.
-                    # If a token is a color spec, set the color for the next token to write.
-                    # Color spec can be a foreground color only (e.g., 'green'), or a foreground-background color pair (e.g., 'green:white')
+                if (-not $prevWasColorSpec -and $token -match '^([a-z]+)(:([a-z]+))?$') {
                     try {
                         $curFgColor = [ConsoleColor]  $matches[1];
                         $prevWasColorSpec = $true;
@@ -210,62 +155,68 @@ Write-HostColored "#green#Green foreground.# Default colors. #blue:white#Blue on
                 $prevWasColorSpec = $false;
 
                 if ($token) {
-                    # A text token: write with (with no trailing line break).
-                    # !! In the ISE - as opposed to a regular PowerShell console window,
-                    # !! $host.UI.RawUI.ForegroundColor and $host.UI.RawUI.ForegroundColor inexcplicably 
-                    # !! report value -1, which causes an error when passed to Write-Host.
-                    # !! Thus, we only specify the -ForegroundColor and -BackgroundColor parameters
-                    # !! for values other than -1.
                     $argsHash = @{};
                     if ([int] $curFgColor -ne -1) { $argsHash += @{ 'ForegroundColor' = $curFgColor; } }
                     if ([int] $curBgColor -ne -1) { $argsHash += @{ 'BackgroundColor' = $curBgColor; } }
                     Write-Host -NoNewline @argsHash $token;
                 }
 
-                # Revert to default colors.
                 $curFgColor = $ForegroundColor;
                 $curBgColor = $BackgroundColor;
 
             }
         }
-        # Terminate with a newline, unless suppressed
-        if (-not $NoNewLine) { Newline; }
+        if (-not $NoNewLine) { WriteHost-Newline; }
     };
 }
 
-function EchoColored {
+function WriteHost-Colored {
 	param(
 		[String] $text
 	);
 	Write-HostColored $text;
 }
 
-################################################################
-#	BEHAVIORS
-################################################################
-
-# create basic dirs
-if (-not(Test-Path -Path $LUAROCKS_ROAMING_PATH)) {
-	mkdir $LUAROCKS_ROAMING_PATH | Out-Null;
-} if (-not(Test-Path -Path $LUAROCKS_LOCAL_PATH)) {
-	mkdir $LUAROCKS_LOCAL_PATH | Out-Null;
+function CreateBasicDirs {
+	if (-not(Test-Path -Path $LUAROCKS_ROAMING_PATH)) {
+		mkdir $LUAROCKS_ROAMING_PATH | Out-Null;
+	} if (-not(Test-Path -Path $LUAROCKS_LOCAL_PATH)) {
+		mkdir $LUAROCKS_LOCAL_PATH | Out-Null;
+	}
 }
 
-# go to default dir
-cd $PROGAM_FILES_PATH;
+function GotoDefaultDir {
+	Set-Location $PROGAM_FILES_PATH;
+}
 
-# makelua noone arg
-if ($args.Count -eq 0) {
-	EchoColored 'type: #green#"makelua help"# for more information';
-	cd $CURRENT_PATH;
+function GetAdminMode {
+	$IS_ADMIN = [bool](([System.Security.Principal.WindowsIdentity]::GetCurrent()).groups -match "S-1-5-32-544");
+	if (-not $IS_ADMIN) {
+		$params = @{
+			FilePath = 'pwsh';
+			Verb = 'RunAs';
+			ArgumentList = @(
+				"-ExecutionPolicy ByPass";
+				"-File `"$PSCommandPath`"";
+				$Args;
+			);
+		};
+		Start-Process @params;
+		Set-Location $CURRENT_PATH;
+		exit;
+	}
+}
+
+function Makelua-DefaultMessage {
+	WriteHost-Colored 'type: #green#"makelua help"# for more information';
+	Set-Location $CURRENT_PATH;
 	exit;
 }
 
-# makelua help
-if (($args.Count -ge 1) -and ($Args[0] -eq 'help')) {
+function Makelua-Help {
 	$LUA_VERSION = GetLuaVersionWeb;
 	$LUAROCKS_VERSION = GetLuaRocksVersionWeb;
-	EchoColored "#green#|MAKE_LUA HELP|#
+	WriteHost-Colored "#green#|MAKE_LUA HELP|#
 	
 #green#MakeLua info:#
  - Operating System: #green#$CURRENT_OS_VERSION#
@@ -300,46 +251,50 @@ if (($args.Count -ge 1) -and ($Args[0] -eq 'help')) {
 
 to install use #green#`"makelua install lua dynamic msvc default $LUA_VERSION $LUAROCKS_VERSION`"#
 MakeLua is a installer";
-	cd $CURRENT_PATH;
+	Set-Location $CURRENT_PATH;
 	exit;
 }
 
-# get admin mode
-$IS_ADMIN = [bool](([System.Security.Principal.WindowsIdentity]::GetCurrent()).groups -match "S-1-5-32-544");
-if (-not $IS_ADMIN) {
-	$params = @{
-		FilePath = 'pwsh';
-		Verb = 'RunAs';
-		ArgumentList = @(
-			"-ExecutionPolicy ByPass";
-			"-File `"$PSCommandPath`"";
-			$Args;
-		);
-	};
-	Start-Process @params;
-	cd $CURRENT_PATH;
-	exit;
-}
-
-# makelua uninstall
-if (($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')) {
+function Makelua-Uninstall {
 	sleep 2;
 	if (Test-Path -Path $LUAROCKS_ROAMING_PATH) {
 		rm -r $LUAROCKS_ROAMING_PATH -Force;
-		EchoForegroundColor "remove $LUAROCKS_ROAMING_PATH successfully" 'Green';
+		WriteHost-ForegroundColor "remove $LUAROCKS_ROAMING_PATH successfully" 'Green';
 	} if (Test-Path -Path $LUAROCKS_LOCAL_PATH) {
 		rm -r $LUAROCKS_LOCAL_PATH -Force;
-		EchoForegroundColor "remove $LUAROCKS_LOCAL_PATH successfully" 'Green';
+		WriteHost-ForegroundColor "remove $LUAROCKS_LOCAL_PATH successfully" 'Green';
 	} if (Test-Path -Path $LUAROCKS_SYSTEM_PATH) {
 		rm -r $LUAROCKS_SYSTEM_PATH -Force;
-		EchoForegroundColor "remove $LUAROCKS_SYSTEM_PATH successfully" 'Green';
+		WriteHost-ForegroundColor "remove $LUAROCKS_SYSTEM_PATH successfully" 'Green';
 	} if (Test-Path -Path $MAKELUA_PATH) {
 		rm -r $MAKELUA_PATH -Force;
-		EchoForegroundColor "remove $MAKELUA_PATH successfully" 'Green';
+		WriteHost-ForegroundColor "remove $MAKELUA_PATH successfully" 'Green';
 	}
-	cd $CURRENT_PATH;
+	Set-Location $CURRENT_PATH;
 	pause;
 	exit;
+}
+
+################################################################
+#	BEHAVIORS
+################################################################
+
+CreateBasicDirs;
+GotoDefaultDir;
+
+# makelua noone arg
+if ($args.Count -eq 0) {
+	Makelua-DefaultMessage;
+}
+
+if (($args.Count -ge 1) -and ($Args[0] -eq 'help')) {
+	Makelua-Help;
+}
+
+GetAdminMode;
+
+if (($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')) {
+	Makelua-Uninstall;
 }
 
 $ARG_ERR = $True;
@@ -348,7 +303,7 @@ $ARG_ERR = $True;
 if (($args.Count -ge 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'lua')) {
 	$LUA_PATH = "$MAKELUA_PATH\lua-lang";
 	$ARG_ERR = $False;
-	EchoForegroundColor "Installing Lua" 'Green';
+	WriteHost-ForegroundColor "Installing Lua" 'Green';
 
 	#luarocks information dir
 	if (-not(Test-Path -Path $LUAROCKS_SYSTEM_PATH)) {
@@ -370,8 +325,8 @@ if (($args.Count -ge 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'lua')
 		mv "$SCRIPT_PATH\makelua.ps1" "$MAKELUA_PATH\makelua.ps1"
 	}
 	
-	cd $LUA_PATH;
-	EchoForegroundColor 'MakeLua Options Using:' 'Green';
+	Set-Location $LUA_PATH;
+	WriteHost-ForegroundColor 'MakeLua Options Using:' 'Green';
 	$ERR = $False;
 	
 	if ($Args.Count -ge 3) {
@@ -379,37 +334,37 @@ if (($args.Count -ge 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'lua')
 	} else {
 		$IS_DYNAMIC_OR_STATIC='dynamic';
 	}
-	EchoForegroundColor " - link: $IS_DYNAMIC_OR_STATIC" 'Green';
+	WriteHost-ForegroundColor " - link: $IS_DYNAMIC_OR_STATIC" 'Green';
 	
 	if ($Args.Count -ge 4) {
 		$COMPILER = $Args[3] -as [string]; #msvc llvm gnu || compiler options	
 	} else {
 		$COMPILER = 'msvc';
 	}
-	EchoForegroundColor " - compiler: $COMPILER" 'Green';
+	WriteHost-ForegroundColor " - compiler: $COMPILER" 'Green';
 	
 	if ($Args.Count -ge 5) {
 		$OPTIMIZE = $Args[4] -as [string]; #default size speed || optimize options	
 	} else {
 		$OPTIMIZE = 'default';
 	}
-	EchoForegroundColor " - optimize: $OPTIMIZE" 'Green';
+	WriteHost-ForegroundColor " - optimize: $OPTIMIZE" 'Green';
 	
 	if ($Args.Count -ge 6) {
 		$LUA_VERSION = $Args[5] -as [string]; #lua version
 	} else {
 		$LUA_VERSION = GetLuaVersionWeb;
 	}
-	EchoForegroundColor " - lua_version: $LUA_VERSION" 'Green';
+	WriteHost-ForegroundColor " - lua_version: $LUA_VERSION" 'Green';
 	
 	if ($Args.Count -ge 7) {
 		$LUAROCKS_VERSION = $Args[6] -as [string]; #luarocks version
 	} else {
 		$LUAROCKS_VERSION = GetLuaRocksVersionWeb;
 	}
-	EchoForegroundColor " - luarocks_version: $LUAROCKS_VERSION" 'Green';
-		
-	Newline;
+	WriteHost-ForegroundColor " - luarocks_version: $LUAROCKS_VERSION" 'Green';
+
+	WriteHost-Newline;
 	if ($ERR -eq $True) {
 		exit;
 	}
@@ -419,14 +374,14 @@ if (($args.Count -ge 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'lua')
 if (($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'nelua')) {
 	$NELUA_PATH = "$MAKELUA_PATH\nelua-lang";
 	$ARG_ERR = $False;
-	EchoForegroundColor "Installing Nelua" 'Green';
+	WriteHost-ForegroundColor "Installing Nelua" 'Green';
 	
 	if (Test-Path -Path $NELUA_PATH) {
 		rm -r $NELUA_PATH;
 	}
 	
 	git clone "https://github.com/edubart/nelua-lang.git" "$NELUA_PATH";
-	cd $NELUA_PATH;
+	Set-Location $NELUA_PATH;
 	make;
 	
 	Remove-item -Path $NELUA_PATH\.git -Force;
@@ -446,7 +401,7 @@ if (($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'nelua
 	rm $NELUA_PATH\nelua;
 	rm $NELUA_PATH\Makefile;
 	rm $NELUA_PATH\README.md;
-	EchoForegroundColor "Nelua Installed" 'Green';
+	WriteHost-ForegroundColor "Nelua Installed" 'Green';
 	pause;
 	exit;
 }
@@ -455,7 +410,7 @@ if (($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'nelua
 if (($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'luajit')) {
 	$LUAJIT_PATH = "$MAKELUA_PATH\luajit-lang";
 	$ARG_ERR = $False;
-	EchoForegroundColor "Installing LuaJIT" 'Green';
+	WriteHost-ForegroundColor "Installing LuaJIT" 'Green';
 	
 	if (Test-Path -Path $LUAJIT_PATH) {
 		rm -r $LUAJIT_PATH;
@@ -464,7 +419,7 @@ if (($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'luaji
 	git clone "https://github.com/LuaJIT/LuaJIT.git" "$LUAJIT_PATH";
 	mkdir $LUAJIT_PATH\lua | Out-Null;
 	mkdir $LUAJIT_PATH\include | Out-Null;
-	cd $LUAJIT_PATH;
+	Set-Location $LUAJIT_PATH;
 	make;
 	
 	mv $LUAJIT_PATH\src\luajit.exe $LUAJIT_PATH\luajit.exe;
@@ -484,14 +439,14 @@ if (($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'luaji
 	rm $LUAJIT_PATH\COPYRIGHT;
 	rm $LUAJIT_PATH\Makefile;
 	rm $LUAJIT_PATH\README;
-	EchoForegroundColor "LuaJIT Installed" 'Green';
+	WriteHost-ForegroundColor "LuaJIT Installed" 'Green';
 	pause;
 	exit;
 }
 
 # args error
 if ($ARG_ERR -eq $True) {
-	echo 'Non-Existent Options';
+	Write-Host 'Non-Existent Options';
 	pause;
 	exit;
 }
@@ -507,12 +462,12 @@ if (-not(Test-Path -Path "$LUAROCKS_SYSTEM_PATH\$LUAROCKS_CONFIG_FILE" -PathType
 } if (-not(Test-Path -Path "$LUAROCKS_ROAMING_PATH\$LUAROCKS_CONFIG_FILE" -PathType Leaf)) {
 	new-item "$LUAROCKS_ROAMING_PATH\$LUAROCKS_CONFIG_FILE" | Out-Null;
 }
-echo "Lua Version: $LUA_VERSION";
-echo "LuaRocks Version: $LUAROCKS_VERSION";
-echo "Lua Version Name: $LUA_VERSION_NAME";
+Write-Host "Lua Version: $LUA_VERSION";
+Write-Host "LuaRocks Version: $LUAROCKS_VERSION";
+Write-Host "Lua Version Name: $LUA_VERSION_NAME";
 
-echo 'start shell script';
-echo 'import luarocks';
+Write-Host 'start shell script';
+Write-Host 'import luarocks';
 if (Test-Path -Path luarocks.exe -PathType Leaf) {
 	rm luarocks.exe;
 } if (Test-Path -Path luarocks-admin.exe -PathType Leaf) {
@@ -525,20 +480,20 @@ mv luarocks-$LUAROCKS_VERSION-windows-64/luarocks-admin.exe luarocks-admin.exe;
 rm -r luarocks-$LUAROCKS_VERSION-windows-64;
 rm luarocks-$LUAROCKS_VERSION-windows-64.zip;
 
-echo 'import lua code';
+Write-Host 'import lua code';
 curl -R -O http://www.lua.org/ftp/lua-$LUA_VERSION.tar.gz;
 tar zxf lua-$LUA_VERSION.tar.gz;
 if (Test-Path -Path ./lua-$LUA_VERSION) {
-	cd lua-$LUA_VERSION;
+	Set-Location lua-$LUA_VERSION;
 } else {
-	echo "dont find lua-$LUA_VERSION folder";
+	Write-Host "dont find lua-$LUA_VERSION folder";
 	exit;
 }
 if (Test-Path -Path ./src) {
-	cd src;
+	Set-Location src;
 } else {
-	echo 'dont find src folder';
-	cd ..;
+	Write-Host 'dont find src folder';
+	Set-Location ..;
 	exit;
 }
 
@@ -595,8 +550,8 @@ if ($COMPILER -eq 'msvc') {
 	}
 	
 	Invoke-VsScript vcvars64.bat;
-	echo 'using MSVC compiler';
-	echo 'start build .c files';
+	Write-Host 'using MSVC compiler';
+	Write-Host 'start build .c files';
 	if ($IS_DYNAMIC_OR_STATIC -eq 'dynamic') {
 		cl /MD /$O /c /DLUA_BUILD_AS_DLL *.c | Out-Null;
 	}
@@ -606,27 +561,27 @@ if ($COMPILER -eq 'msvc') {
 	ren lua.obj lua.o;
 	ren luac.obj luac.o;
 	ren wmain.obj wmain.o;
-	echo "start build lua$LUA_VERSION_NAME.dll and lua$LUA_VERSION_NAME.lib";
+	Write-Host "start build lua$LUA_VERSION_NAME.dll and lua$LUA_VERSION_NAME.lib";
 	link /DLL /IMPLIB:lua$LUA_VERSION_NAME.lib /OUT:lua$LUA_VERSION_NAME.dll *.obj | Out-Null;
-	echo "start build lua$LUA_VERSION_NAME-static.lib";
+	Write-Host "start build lua$LUA_VERSION_NAME-static.lib";
 	lib /OUT:lua$LUA_VERSION_NAME-static.lib *.obj | Out-Null;
-	echo "start build lua$LUA_VERSION_NAME.exe";
+	Write-Host "start build lua$LUA_VERSION_NAME.exe";
 	if ($IS_DYNAMIC_OR_STATIC -eq 'dynamic') {
 		link /subsystem:console /OUT:lua$LUA_VERSION_NAME.exe lua.o lua$LUA_VERSION_NAME.lib | Out-Null;	
 	}
 	elseif ($IS_DYNAMIC_OR_STATIC -eq 'static') {
 		link /subsystem:console /OUT:lua$LUA_VERSION_NAME.exe lua$LUA_VERSION_NAME-static.lib lua.o | Out-Null;	
 	}
-	echo "start build wlua$LUA_VERSION_NAME.exe";
+	Write-Host "start build wlua$LUA_VERSION_NAME.exe";
 	if ($IS_DYNAMIC_OR_STATIC -eq 'dynamic') {
 		link /subsystem:windows /defaultlib:shell32.lib /OUT:wlua$LUA_VERSION_NAME.exe lua.o wmain.o lua$LUA_VERSION_NAME.lib | Out-Null;	
 	}
 	elseif ($IS_DYNAMIC_OR_STATIC -eq 'static') {
 		link /subsystem:windows /defaultlib:shell32.lib /OUT:wlua$LUA_VERSION_NAME.exe lua.o wmain.o lua$LUA_VERSION_NAME-static.lib | Out-Null;
 	}
-	echo "start build luac$LUA_VERSION_NAME.exe";
+	Write-Host "start build luac$LUA_VERSION_NAME.exe";
 	link /subsystem:console /OUT:luac$LUA_VERSION_NAME.exe luac.o lua$LUA_VERSION_NAME-static.lib | Out-Null;
-	echo 'finish build';
+	Write-Host 'finish build';
 	RestartEnv;
 } elseif ($COMPILER -eq 'llvm') {
 	if ($OPTIMIZE -eq 'default') {
@@ -638,8 +593,8 @@ if ($COMPILER -eq 'msvc') {
 	elseif ($OPTIMIZE -eq 'size') {
 		$O = 'Oz'
 	}
-	echo 'using LLVM compiler';
-	echo 'start build .c files';
+	Write-Host 'using LLVM compiler';
+	Write-Host 'start build .c files';
 	if ($IS_DYNAMIC_OR_STATIC -eq 'dynamic') {
 		clang -MD -$O -c -DLUA_BUILD_AS_DLL *.c | Out-Null;
 	}
@@ -649,27 +604,27 @@ if ($COMPILER -eq 'msvc') {
 	ren lua.o lua.obj;
 	ren luac.o luac.obj;
 	ren wmain.o wmain.obj;
-	echo "start build lua$LUA_VERSION_NAME.dll and lua$LUA_VERSION_NAME.lib";
+	Write-Host "start build lua$LUA_VERSION_NAME.dll and lua$LUA_VERSION_NAME.lib";
 	clang -$O -DNDEBUG -static *.o -shared -$("Wl,-implib:lua$LUA_VERSION_NAME.lib") -o lua$LUA_VERSION_NAME.dll | Out-Null;
-	echo "start build lua$LUA_VERSION_NAME-static.lib";
+	Write-Host "start build lua$LUA_VERSION_NAME-static.lib";
 	llvm-lib /OUT:lua$LUA_VERSION_NAME-static.lib *.o | Out-Null;
-	echo "start build lua$LUA_VERSION_NAME.exe";
+	Write-Host "start build lua$LUA_VERSION_NAME.exe";
 	if ($IS_DYNAMIC_OR_STATIC -eq 'dynamic') {
 		clang -$O -DNDEBUG -static lua$LUA_VERSION_NAME.lib lua.obj -$('Wl,-subsystem:console') -o lua$LUA_VERSION_NAME.exe | Out-Null;
 	}
 	elseif ($IS_DYNAMIC_OR_STATIC -eq 'static') {
 		clang -$O -DNDEBUG -static lua$LUA_VERSION_NAME-static.lib lua.obj -$('Wl,-subsystem:console') -o lua$LUA_VERSION_NAME.exe | Out-Null;
 	}
-	echo "start build wlua$LUA_VERSION_NAME.exe";
+	Write-Host "start build wlua$LUA_VERSION_NAME.exe";
 	if ($IS_DYNAMIC_OR_STATIC -eq 'dynamic') {
 		clang -$O -DNDEBUG -static lua$LUA_VERSION_NAME.lib lua.obj wmain.obj -$('Wl,-subsystem:windows') -$('Wl,-defaultlib:shell32.lib') -o wlua$LUA_VERSION_NAME.exe | Out-Null;
 	}
 	elseif ($IS_DYNAMIC_OR_STATIC -eq 'static') {
 		clang -$O -DNDEBUG -static lua$LUA_VERSION_NAME-static.lib lua.obj wmain.obj -$('Wl,-subsystem:windows') -$('Wl,-defaultlib:shell32.lib') -o wlua$LUA_VERSION_NAME.exe | Out-Null;
 	}
-	echo "start build luac$LUA_VERSION_NAME.exe";
+	Write-Host "start build luac$LUA_VERSION_NAME.exe";
 	clang -$O -DNDEBUG -static lua$LUA_VERSION_NAME-static.lib luac.obj -$('Wl,-subsystem:console') -o luac$LUA_VERSION_NAME.exe | Out-Null;
-	echo 'finish build';
+	Write-Host 'finish build';
 } elseif ($COMPILER -eq 'gnu') {
 	if ($OPTIMIZE -eq 'default') {
 		$O = 'O3'
@@ -680,47 +635,47 @@ if ($COMPILER -eq 'msvc') {
 	elseif ($OPTIMIZE -eq 'size') {
 		$O = 'Oz'
 	}
-	echo 'using GNU compiler';
-	echo 'start build .c files';
+	Write-Host 'using GNU compiler';
+	Write-Host 'start build .c files';
 	gcc -$O -DNDEBUG -c *.c | Out-Null;
 	ren lua.o lua.obj;
 	ren luac.o luac.obj;
 	ren wmain.o wmain.obj;
-	echo "start build lua$LUA_VERSION_NAME.dll";
+	Write-Host "start build lua$LUA_VERSION_NAME.dll";
 	gcc -$O -DNDEBUG -static-libgcc -static *.o -shared -o lua$LUA_VERSION_NAME.dll;
-	echo "start build lua$LUA_VERSION_NAME.lib and liblua$LUA_VERSION_NAME.a";
+	Write-Host "start build lua$LUA_VERSION_NAME.lib and liblua$LUA_VERSION_NAME.a";
 	ar -rcs lua$LUA_VERSION_NAME.lib lapi.o lcode.o lctype.o ldebug.o ldo.o ldump.o lfunc.o lgc.o llex.o lmem.o lobject.o lopcodes.o lparser.o lstate.o lstring.o ltable.o ltm.o lundump.o lvm.o lzio.o lauxlib.o lbaselib.o lcorolib.o ldblib.o liolib.o lmathlib.o loadlib.o loslib.o lstrlib.o ltablib.o lutf8lib.o linit.o;
 	cp lua$LUA_VERSION_NAME.lib liblua$LUA_VERSION_NAME.a;
-	echo "start build lua$LUA_VERSION_NAME.exe";
+	Write-Host "start build lua$LUA_VERSION_NAME.exe";
 	if ($IS_DYNAMIC_OR_STATIC -eq 'dynamic') {
 		gcc -$O -DNDEBUG -static-libgcc -static lua.obj lua$LUA_VERSION_NAME.dll -W -o lua$LUA_VERSION_NAME.exe;
 	}
 	elseif ($IS_DYNAMIC_OR_STATIC -eq 'static') {
 		gcc -$O -DNDEBUG -static-libgcc -static lua.obj -L. -Bstatic -$('llua' + $LUA_VERSION_NAME) -W -o lua$LUA_VERSION_NAME.exe;
 	}
-	echo "start build wlua$LUA_VERSION_NAME.exe";
+	Write-Host "start build wlua$LUA_VERSION_NAME.exe";
 	if ($IS_DYNAMIC_OR_STATIC -eq 'dynamic') {
 		gcc -mwindows -$O -DNDEBUG -static-libgcc -static lua.obj lua$LUA_VERSION_NAME.dll -W -o wlua$LUA_VERSION_NAME.exe;
 	}
 	elseif ($IS_DYNAMIC_OR_STATIC -eq 'static') {
 		gcc -mwindows -$O -DNDEBUG -static-libgcc -static lua.obj -L. -Bstatic -$('llua' + $LUA_VERSION_NAME) -W -o wlua$LUA_VERSION_NAME.exe;
 	}
-	echo "start build luac$LUA_VERSION_NAME.exe";
+	Write-Host "start build luac$LUA_VERSION_NAME.exe";
 	if ($IS_DYNAMIC_OR_STATIC -eq 'dynamic') {
 		gcc -$O -DNDEBUG -static-libgcc -static luac.obj lua$LUA_VERSION_NAME.dll -W -o luac$LUA_VERSION_NAME.exe;
 	}
 	elseif ($IS_DYNAMIC_OR_STATIC -eq 'static') {
 		gcc -$O -DNDEBUG -static-libgcc -static luac.obj -L. -Bstatic -$('llua' + $LUA_VERSION_NAME) -W -o luac$LUA_VERSION_NAME.exe;
 	}
-	echo 'finish build';
+	Write-Host 'finish build';
 } else {
-	echo "don't exist this compiler: $COMPILER"
+	Write-Host "don't exist this compiler: $COMPILER"
 	exit;
 }
 
-cd ..;
-cd ..;
-echo 'start move and delete';
+Set-Location ..;
+Set-Location ..;
+Write-Host 'start move and delete';
 if (Test-Path -Path ./include) {
 	rm -r include;
 }
@@ -765,7 +720,7 @@ if (Test-Path -Path lua-$LUA_VERSION\src\lua$LUA_VERSION_NAME.dll -PathType Leaf
 rm -r lua-$LUA_VERSION;
 rm -r lua-$LUA_VERSION.tar.gz;
 
-echo 'start create linker files';
+Write-Host 'start create linker files';
 if (-not(Test-Path -Path lua.bat -PathType Leaf)) {
 	new-item lua.bat | Out-Null;
 } if (-not(Test-Path -Path luac.bat -PathType Leaf)) {
@@ -780,7 +735,7 @@ set-content luac.bat "@call `"%~dp0luac$LUA_VERSION_NAME`" %*";
 set-content wlua.bat "@call `"%~dp0wlua$LUA_VERSION_NAME`" %*";
 set-content makelua.bat "@call pwsh -file `"%~dp0makelua.ps1`" %*";
 
-echo 'start create init lua files';
+Write-Host 'start create init lua files';
 if (-not(Test-Path -Path ./init)) {
 	mkdir init;
 }
@@ -794,6 +749,6 @@ local luarocks_cpath = ";" .. app_data .. "\\luarocks\\lib\\lua\\" .. lua_versio
 
 package.path = package.path .. luarocks_path
 package.cpath = package.cpath .. luarocks_cpath';
-echo 'finish script';
-cd $CURRENT_PATH;
+Write-Host 'finish script';
+Set-Location $CURRENT_PATH;
 pause;
