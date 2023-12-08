@@ -2,6 +2,9 @@
 #	VARIABLES
 ################################################################
 
+# admin
+$IS_ADMIN = [bool](([System.Security.Principal.WindowsIdentity]::GetCurrent()).groups -match "S-1-5-32-544");
+
 # versions
 $MAKELUA_VERSION = '1.3.0beta';
 $CURRENT_OS_VERSION = (Get-CimInstance -ClassName CIM_OperatingSystem).Caption;
@@ -469,7 +472,6 @@ if (($args.Count -ge 1) -and ($Args[0] -eq 'help')) {
 	Makelua-Help;
 }
 
-$IS_ADMIN = [bool](([System.Security.Principal.WindowsIdentity]::GetCurrent()).groups -match "S-1-5-32-544");
 if (-not $IS_ADMIN) {
 	GetAdminMode $Args;
 }
