@@ -12,3 +12,10 @@ include/
 nelua-lang/
 lua-lang/
 luajit-lang/
+# ignore all linkers
+makelua.bat
+mklua.bat
+mkl.bat
+# makelua.ps1
+mklua.ps1
+mkl.ps1

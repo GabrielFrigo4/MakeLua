@@ -41,7 +41,10 @@ $LUA_DATA = @{
 };
 
 # batch file data
-$BATCH_FILE_DATA = "@call pwsh -file `"%~dp0makelua.ps1`" %*";
+$BATCH_FILE_DATA = "@call pwsh -file `"%~dp0makelua.ps1`" makelua %*";
+
+# powershell file data
+$POWERSHELL_FILE_DATA = "Invoke-Expression `"& ```"C:\Program Files\MakeLua\makelua.ps1```" makelua `$args`"";
 
 ################################################################
 #	FUNCTIONS
@@ -197,19 +200,34 @@ function CreateBasicDirs {
 
 function CreateMakeLuaLinker {
 	if (-not(Test-Path -Path "$MAKELUA_PATH\makelua.bat" -PathType Leaf)) {
-		Write-Host 'start create "makelua" linker file';
+		Write-Host 'start create "makelua.bat" linker file';
 		new-item "$MAKELUA_PATH\makelua.bat" | Out-Null;
 		set-content "$MAKELUA_PATH\makelua.bat" $BATCH_FILE_DATA;
 	}
 	if (-not(Test-Path -Path "$MAKELUA_PATH\mklua.bat" -PathType Leaf)) {
-		Write-Host 'start create "mklua" linker file';
+		Write-Host 'start create "mklua.bat" linker file';
 		new-item "$MAKELUA_PATH\mklua.bat" | Out-Null;
 		set-content "$MAKELUA_PATH\mklua.bat" $BATCH_FILE_DATA;
 	}
 	if (-not(Test-Path -Path "$MAKELUA_PATH\mkl.bat" -PathType Leaf)) {
-		Write-Host 'start create "mkl" linker file';
+		Write-Host 'start create "mkl.bat" linker file';
 		new-item "$MAKELUA_PATH\mkl.bat" | Out-Null;
 		set-content "$MAKELUA_PATH\mkl.bat" $BATCH_FILE_DATA;
+	}
+	if (-not(Test-Path -Path "$MAKELUA_PATH\makelua.ps1" -PathType Leaf)) {
+		Write-Host 'start create "makelua.ps1" linker file';
+		new-item "$MAKELUA_PATH\makelua.ps1" | Out-Null;
+		set-content "$MAKELUA_PATH\makelua.ps1" $POWERSHELL_FILE_DATA;
+	}
+	if (-not(Test-Path -Path "$MAKELUA_PATH\mklua.ps1" -PathType Leaf)) {
+		Write-Host 'start create "mklua.ps1" linker file';
+		new-item "$MAKELUA_PATH\mklua.ps1" | Out-Null;
+		set-content "$MAKELUA_PATH\mklua.ps1" $POWERSHELL_FILE_DATA;
+	}
+	if (-not(Test-Path -Path "$MAKELUA_PATH\mkl.ps1" -PathType Leaf)) {
+		Write-Host 'start create "mkl.ps1" linker file';
+		new-item "$MAKELUA_PATH\mkl.ps1" | Out-Null;
+		set-content "$MAKELUA_PATH\mkl.ps1" $POWERSHELL_FILE_DATA;
 	}
 }
 
@@ -299,7 +317,7 @@ function MakeLua-Setup {
 		mkdir $MAKELUA_PATH | Out-Null;
 	}
 	if (-not($MAKELUA_PATH -eq $SCRIPT_PATH)) {
-		mv "$SCRIPT_PATH\makelua.ps1" "$MAKELUA_PATH\makelua.ps1"
+		mv "$SCRIPT_PATH\make-lua-tools.ps1" "$MAKELUA_PATH\make-lua-tools.ps1"
 	}
 	CreateMakeLuaLinker;
 	
@@ -496,7 +514,7 @@ if ($args.Count -eq 0) {
 	MakeLua-DefaultMessage;
 }
 
-if (($args.Count -ge 1) -and ($Args[0] -eq 'help')) {
+if (($args.Count -ge 2) -and ($Args[0] -eq 'makelua') -and ($Args[1] -eq 'help')) {
 	MakeLua-Help;
 }
 
@@ -506,46 +524,46 @@ if (-not $IS_ADMIN) {
 
 $ARG_ERR = $True;
 
-if (($args.Count -eq 1 ) -and ($args[0] -eq 'setup')) {
+if (($args.Count -eq 2 ) -and ($Args[0] -eq 'makelua') -and ($args[1] -eq 'setup')) {
 	$ARG_ERR = MakeLua-Setup;
 	exit;
 }
 
-if (($args.Count -eq 1 ) -and ($args[0] -eq 'remove')) {
+if (($args.Count -eq 2 ) -and ($Args[0] -eq 'makelua') -and ($args[1] -eq 'remove')) {
 	$ARG_ERR = MakeLua-Remove;
 	pause;
 	exit;
 }
 
-if (($args.Count -ge 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'lua')) {
+if (($args.Count -ge 3 ) -and ($Args[0] -eq 'makelua') -and ($args[1] -eq 'install') -and ($args[2] -eq 'lua')) {
 	$ARG_ERR = MakeLua-Install-Lua;
 }
 
-if (($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'nelua')) {
+if (($args.Count -eq 3 ) -and ($Args[0] -eq 'makelua') -and ($args[1] -eq 'install') -and ($args[2] -eq 'nelua')) {
 	$ARG_ERR = MakeLua-Install-Nelua;
 	pause;
 	exit;
 }
 
-if (($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'luajit')) {
+if (($args.Count -eq 3 ) -and ($Args[0] -eq 'makelua') -and ($args[1] -eq 'install') -and ($args[2] -eq 'luajit')) {
 	$ARG_ERR = MakeLua-Install-LuaJIT;
 	pause;
 	exit;
 }
 
-if (($args.Count -ge 2 ) -and ($args[0] -eq 'uninstall') -and ($args[1] -eq 'lua')) {
+if (($args.Count -ge 3 ) -and ($Args[0] -eq 'makelua') -and ($args[1] -eq 'uninstall') -and ($arg[2] -eq 'lua')) {
 	$ARG_ERR = MakeLua-Uninstall-Lua;
 	pause;
 	exit;
 }
 
-if (($args.Count -eq 2 ) -and ($args[0] -eq 'uninstall') -and ($args[1] -eq 'nelua')) {
+if (($args.Count -eq 3 ) -and ($Args[0] -eq 'makelua') -and ($args[1] -eq 'uninstall') -and ($args[2] -eq 'nelua')) {
 	$ARG_ERR = MakeLua-Uninstall-Nelua;
 	pause;
 	exit;
 }
 
-if (($args.Count -eq 2 ) -and ($args[0] -eq 'uninstall') -and ($args[1] -eq 'luajit')) {
+if (($args.Count -eq 3 ) -and ($Args[0] -eq 'makelua') -and ($args[1] -eq 'uninstall') -and ($args[2] -eq 'luajit')) {
 	$ARG_ERR = MakeLua-Uninstall-LuaJIT;
 	pause;
 	exit;
