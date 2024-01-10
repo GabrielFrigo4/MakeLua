@@ -6,7 +6,7 @@
 $IS_ADMIN = [bool](([System.Security.Principal.WindowsIdentity]::GetCurrent()).groups -match "S-1-5-32-544");
 
 # versions
-$MAKELUA_VERSION = '1.3.0beta';
+$MAKELUA_VERSION = '1.3.0';
 $CURRENT_OS_VERSION = (Get-CimInstance -ClassName CIM_OperatingSystem).Caption;
 
 # basic paths
@@ -21,7 +21,10 @@ $LUAROCKS_SYSTEM_PATH = 'C:\Program Files\luarocks';
 
 # makelua paths
 $MAKELUA_PATH = 'C:\Program Files\MakeLua';
-
+$LUA_PATH = "$MAKELUA_PATH\lua-lang";
+$NELUA_PATH = "$MAKELUA_PATH\nelua-lang";
+$LUAJIT_PATH = "$MAKELUA_PATH\luajit-lang";
+	
 # colors
 $DefaultColors = @{
 	"ForegroundColor"=$host.ui.RawUI.ForegroundColor;
@@ -36,6 +39,9 @@ $LUA_DATA = @{
 	"LUA_VERSION"=$null;
 	"LUAROCKS_VERSION"=$null;
 };
+
+# batch file data
+$BATCH_FILE_DATA = "@call pwsh -file `"%~dp0makelua.ps1`" %*";
 
 ################################################################
 #	FUNCTIONS
@@ -175,7 +181,6 @@ function WriteHost-Colored {
 
                 $curFgColor = $ForegroundColor;
                 $curBgColor = $BackgroundColor;
-
             }
         }
         if (-not $NoNewLine) { WriteHost-Newline; }
@@ -187,6 +192,24 @@ function CreateBasicDirs {
 		mkdir $LUAROCKS_ROAMING_PATH | Out-Null;
 	} if (-not(Test-Path -Path $LUAROCKS_LOCAL_PATH)) {
 		mkdir $LUAROCKS_LOCAL_PATH | Out-Null;
+	}
+}
+
+function CreateMakeLuaLinker {
+	if (-not(Test-Path -Path "$MAKELUA_PATH\makelua.bat" -PathType Leaf)) {
+		Write-Host 'start create "makelua" linker file';
+		new-item "$MAKELUA_PATH\makelua.bat" | Out-Null;
+		set-content "$MAKELUA_PATH\makelua.bat" $BATCH_FILE_DATA;
+	}
+	if (-not(Test-Path -Path "$MAKELUA_PATH\mklua.bat" -PathType Leaf)) {
+		Write-Host 'start create "mklua" linker file';
+		new-item "$MAKELUA_PATH\mklua.bat" | Out-Null;
+		set-content "$MAKELUA_PATH\mklua.bat" $BATCH_FILE_DATA;
+	}
+	if (-not(Test-Path -Path "$MAKELUA_PATH\mkl.bat" -PathType Leaf)) {
+		Write-Host 'start create "mkl" linker file';
+		new-item "$MAKELUA_PATH\mkl.bat" | Out-Null;
+		set-content "$MAKELUA_PATH\mkl.bat" $BATCH_FILE_DATA;
 	}
 }
 
@@ -215,13 +238,13 @@ function GetAdminMode {
 	exit;
 }
 
-function Makelua-DefaultMessage {
+function MakeLua-DefaultMessage {
 	WriteHost-Colored 'type: #green#"makelua help"# for more information';
 	Set-Location $CURRENT_PATH;
 	exit;
 }
 
-function Makelua-Help {
+function MakeLua-Help {
 	$LUA_DATA.LUA_VERSION = GetLuaVersionWeb;
 	$LUA_DATA.LUAROCKS_VERSION = GetLuaRocksVersionWeb;
 	WriteHost-Colored "#green#|MAKE_LUA HELP|#
@@ -240,19 +263,20 @@ function Makelua-Help {
  - tar
  - 7z
 
-#green#(MakeLua) options: (help / install / uninstall)#
+#green#(MakeLua) options: (help / setup / remove / install / uninstall)#
  - help: show help information (this)
- - install: install makelua / lua (and luarocks) / nelua / luajit
- - uninstall: uninstall makelua / lua (and luarocks) / nelua / luajit
+ - setup: setup makelua
+ - remove: remove makelua
+ - install: install lua (and luarocks) / nelua / luajit
+ - uninstall: uninstall lua (and luarocks) / nelua / luajit
 
-#green#(MakeLua install) options: (mklua / lua / nelua / luajit)#
+#green#(MakeLua install) options: (lua / nelua / luajit)#
  - mklua
  - lua
  - nelua
  - luajit
 
-#green#(MakeLua uninstall) options: (mklua / lua / nelua / luajit)#
- - mklua
+#green#(MakeLua uninstall) options: (lua / nelua / luajit)#
  - lua
  - nelua
  - luajit
@@ -265,16 +289,26 @@ function Makelua-Help {
  - luarocks_version: number.number.number
 
 to install use #green#`"makelua install lua dynamic msvc default $($LUA_DATA.LUA_VERSION) $($LUA_DATA.LUAROCKS_VERSION)`"#
-MakeLua is a Lua installer";
+MakeLua is a Lua Installer";
 	Set-Location $CURRENT_PATH;
 	exit;
 }
 
-function Makelua-Install {
-
+function MakeLua-Setup {
+	WriteHost-ForegroundColor "Setup MakeLua" 'Green';
+	if (-not(Test-Path -Path $MAKELUA_PATH)) {
+		mkdir $MAKELUA_PATH | Out-Null;
+	}
+	if (-not($MAKELUA_PATH -eq $SCRIPT_PATH)) {
+		mv "$SCRIPT_PATH\makelua.ps1" "$MAKELUA_PATH\makelua.ps1"
+	}
+	CreateMakeLuaLinker;
+	
+	return $False;
 }
 
-function Makelua-Uninstall {
+function MakeLua-Remove {
+	WriteHost-ForegroundColor "Remove MakeLua" 'Green';
 	sleep 2;
 	if (Test-Path -Path $LUAROCKS_ROAMING_PATH) {
 		rm -r $LUAROCKS_ROAMING_PATH -Force;
@@ -290,34 +324,21 @@ function Makelua-Uninstall {
 		WriteHost-ForegroundColor "remove $MAKELUA_PATH successfully" 'Green';
 	}
 	Set-Location $CURRENT_PATH;
-	pause;
-	exit;
+	
+	return $False;
 }
 
-function Makelua-Install-Lua {
-	$LUA_PATH = "$MAKELUA_PATH\lua-lang";
+function MakeLua-Install-Lua {
 	WriteHost-ForegroundColor "Installing Lua" 'Green';
 
 	#luarocks information dir
 	if (-not(Test-Path -Path $LUAROCKS_SYSTEM_PATH)) {
 		mkdir $LUAROCKS_SYSTEM_PATH | Out-Null;
 	}
-	# makelua dir
-	if (-not(Test-Path -Path $MAKELUA_PATH)) {
-		mkdir $MAKELUA_PATH | Out-Null;
-	} if (-not(Test-Path -Path $MAKELUA_PATH)) {
-		mkdir $MAKELUA_PATH | Out-Null;
-	} 
 	
-	if (Test-Path -Path $LUA_PATH) {
-		rm -r $LUA_PATH;
-	}
+	MakeLua-Uninstall-Lua;
 	mkdir $LUA_PATH;
-	
-	if (-not($MAKELUA_PATH -eq $SCRIPT_PATH)) {
-		mv "$SCRIPT_PATH\makelua.ps1" "$MAKELUA_PATH\makelua.ps1"
-	}
-	
+
 	Set-Location $LUA_PATH;
 	WriteHost-ForegroundColor 'MakeLua Options Using:' 'Green';
 	$ERR = $False;
@@ -365,13 +386,10 @@ function Makelua-Install-Lua {
 	return $False;
 }
 
-function Makelua-Install-Nelua {
-	$NELUA_PATH = "$MAKELUA_PATH\nelua-lang";
+function MakeLua-Install-Nelua {
 	WriteHost-ForegroundColor "Installing Nelua" 'Green';
-	
-	if (Test-Path -Path $NELUA_PATH) {
-		rm -r $NELUA_PATH;
-	}
+
+	MakeLua-Uninstall-Nelua;
 	
 	git clone "https://github.com/edubart/nelua-lang.git" "$NELUA_PATH";
 	Set-Location $NELUA_PATH;
@@ -395,19 +413,14 @@ function Makelua-Install-Nelua {
 	rm $NELUA_PATH\Makefile;
 	rm $NELUA_PATH\README.md;
 	WriteHost-ForegroundColor "Nelua Installed" 'Green';	
-	pause;
-	exit;
 	
 	return $False;
 }
 
-function Makelua-Install-LuaJIT {
-	$LUAJIT_PATH = "$MAKELUA_PATH\luajit-lang";
+function MakeLua-Install-LuaJIT {
 	WriteHost-ForegroundColor "Installing LuaJIT" 'Green';
 	
-	if (Test-Path -Path $LUAJIT_PATH) {
-		rm -r $LUAJIT_PATH;
-	}
+	MakeLua-Uninstall-LuaJIT;
 	
 	git clone "https://github.com/LuaJIT/LuaJIT.git" "$LUAJIT_PATH";
 	mkdir $LUAJIT_PATH\lua | Out-Null;
@@ -433,22 +446,38 @@ function Makelua-Install-LuaJIT {
 	rm $LUAJIT_PATH\Makefile;
 	rm $LUAJIT_PATH\README;
 	WriteHost-ForegroundColor "LuaJIT Installed" 'Green';
-	pause;
-	exit;
 	
 	return $False;
 }
 
-function Makelua-Uninstall-Lua {
+function MakeLua-Uninstall-Lua {
+	WriteHost-ForegroundColor "Uninstalling Lua" 'Green';
+	if (Test-Path -Path $LUA_PATH) {
+		rm -r $LUA_PATH;
+	}
+	WriteHost-ForegroundColor "Lua Uninstalled" 'Green';
 
+	return $False;
 }
 
-function Makelua-Uninstall-Nelua {
+function MakeLua-Uninstall-Nelua {
+	WriteHost-ForegroundColor "Uninstalling Nelua" 'Green';
+	if (Test-Path -Path $NELUA_PATH) {
+		rm -r $NELUA_PATH;
+	}
+	WriteHost-ForegroundColor "Nelua Uninstalled" 'Green';
 
+	return $False;
 }
 
-function Makelua-Uninstall-LuaJIT {
+function MakeLua-Uninstall-LuaJIT {
+	WriteHost-ForegroundColor "Uninstalling LuaJIT" 'Green';
+	if (Test-Path -Path $LUAJIT_PATH) {
+		rm -r $LUAJIT_PATH;
+	}
+	WriteHost-ForegroundColor "LuaJIT Uninstalled" 'Green';
 
+	return $False;
 }
 
 function Argument-Error {
@@ -465,49 +494,62 @@ CreateBasicDirs;
 GotoDefaultDir;
 
 if ($args.Count -eq 0) {
-	Makelua-DefaultMessage;
+	MakeLua-DefaultMessage;
 }
 
 if (($args.Count -ge 1) -and ($Args[0] -eq 'help')) {
-	Makelua-Help;
+	MakeLua-Help;
 }
 
 if (-not $IS_ADMIN) {
 	GetAdminMode $Args;
 }
 
-if (($args.Count -eq 1 ) -and ($args[0] -eq 'install')) {
-	Makelua-Install;
-}
-
-if (($args.Count -eq 1 ) -and ($args[0] -eq 'uninstall')) {
-	Makelua-Uninstall;
-}
-
 $ARG_ERR = $True;
 
+if (($args.Count -eq 1 ) -and ($args[0] -eq 'setup')) {
+	$ARG_ERR = MakeLua-Setup;
+	exit;
+}
+
+if (($args.Count -eq 1 ) -and ($args[0] -eq 'remove')) {
+	$ARG_ERR = MakeLua-Remove;
+	pause;
+	exit;
+}
+
 if (($args.Count -ge 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'lua')) {
-	$ARG_ERR = Makelua-Install-Lua;
+	$ARG_ERR = MakeLua-Install-Lua;
 }
 
 if (($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'nelua')) {
-	$ARG_ERR = Makelua-Install-Nelua;
+	$ARG_ERR = MakeLua-Install-Nelua;
+	pause;
+	exit;
 }
 
 if (($args.Count -eq 2 ) -and ($args[0] -eq 'install') -and ($args[1] -eq 'luajit')) {
-	$ARG_ERR = Makelua-Install-LuaJIT;
+	$ARG_ERR = MakeLua-Install-LuaJIT;
+	pause;
+	exit;
 }
 
 if (($args.Count -ge 2 ) -and ($args[0] -eq 'uninstall') -and ($args[1] -eq 'lua')) {
-	$ARG_ERR = Makelua-Uninstall-Lua;
+	$ARG_ERR = MakeLua-Uninstall-Lua;
+	pause;
+	exit;
 }
 
 if (($args.Count -eq 2 ) -and ($args[0] -eq 'uninstall') -and ($args[1] -eq 'nelua')) {
-	$ARG_ERR = Makelua-Uninstall-Nelua;
+	$ARG_ERR = MakeLua-Uninstall-Nelua;
+	pause;
+	exit;
 }
 
 if (($args.Count -eq 2 ) -and ($args[0] -eq 'uninstall') -and ($args[1] -eq 'luajit')) {
-	$ARG_ERR = Makelua-Uninstall-LuaJIT;
+	$ARG_ERR = MakeLua-Uninstall-LuaJIT;
+	pause;
+	exit;
 }
 
 if ($ARG_ERR -eq $True) {
@@ -548,7 +590,7 @@ rm -r luarocks-$($LUA_DATA.LUAROCKS_VERSION)-windows-64;
 rm luarocks-$($LUA_DATA.LUAROCKS_VERSION)-windows-64.zip;
 
 Write-Host 'import lua code';
-curl -R -O http://www.lua.org/ftp/lua-$($LUA_DATA.LUA_VERSION).tar.gz;
+curl -L -R -O http://www.lua.org/ftp/lua-$($LUA_DATA.LUA_VERSION).tar.gz;
 tar zxf lua-$($LUA_DATA.LUA_VERSION).tar.gz;
 if (Test-Path -Path ./lua-$($LUA_DATA.LUA_VERSION)) {
 	Set-Location lua-$($LUA_DATA.LUA_VERSION);
@@ -591,6 +633,7 @@ if ($LUA_DATA.COMPILER -eq 'msvc') {
 		param(
 			[String] $scriptName
 		)
+
 		if(Test-Path 'C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build') {
 			$env:path = $env:path + ';C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build';
 		} elseif(Test-Path 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build') {
@@ -603,6 +646,8 @@ if ($LUA_DATA.COMPILER -eq 'msvc') {
 			Write-Host "Microsoft Visual Studio path don't find";
 			exit;
 		}
+
+		$env:VSCMD_SKIP_SENDTELEMETRY = 1
 		$cmdLine = "$scriptName $args & set";
 		& $env:SystemRoot\system32\cmd.exe /c $cmdLine |
 		Select-String '^([^=]*)=(.*)$' | ForEach-Object {
@@ -794,13 +839,10 @@ if (-not(Test-Path -Path lua.bat -PathType Leaf)) {
 	new-item luac.bat | Out-Null;
 } if (-not(Test-Path -Path wlua.bat -PathType Leaf)) {
 	new-item wlua.bat | Out-Null;
-} if (-not(Test-Path -Path makelua.bat -PathType Leaf)) {
-	new-item makelua.bat | Out-Null;
-} 
+}
 set-content lua.bat "@call `"%~dp0lua$LUA_VERSION_NAME`" %*";
 set-content luac.bat "@call `"%~dp0luac$LUA_VERSION_NAME`" %*";
 set-content wlua.bat "@call `"%~dp0wlua$LUA_VERSION_NAME`" %*";
-set-content makelua.bat "@call pwsh -file `"%~dp0makelua.ps1`" %*";
 
 Write-Host 'start create init lua files';
 if (-not(Test-Path -Path ./init)) {
@@ -816,6 +858,7 @@ local luarocks_cpath = ";" .. app_data .. "\\luarocks\\lib\\lua\\" .. lua_versio
 
 package.path = package.path .. luarocks_path
 package.cpath = package.cpath .. luarocks_cpath';
+
 Write-Host 'finish script';
 Set-Location $CURRENT_PATH;
 pause;
