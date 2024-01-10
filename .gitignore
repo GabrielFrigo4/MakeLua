@@ -1,12 +1,14 @@
+# ignore all sh
+*.sh
+# ignore all bat
+*.bat
+# ignore all exe
+*.exe
 # ignore all dll
 *.dll
 # ignore all lib
 *.lib
 *.a
-# ignore all exe
-*.exe
-# ignore all bat
-*.bat
 # ignore all include
 include/
 nelua-lang/
@@ -16,6 +18,6 @@ luajit-lang/
 makelua.bat
 mklua.bat
 mkl.bat
-# makelua.ps1
+makelua.ps1
 mklua.ps1
 mkl.ps1
