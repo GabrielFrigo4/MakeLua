@@ -41,10 +41,10 @@ $LUA_DATA = @{
 };
 
 # batch file data
-$BATCH_FILE_DATA = "@call pwsh -file `"%~dp0makelua.ps1`" makelua %*";
+$BATCH_FILE_DATA = "@call pwsh -file `"%~dp0make-lua-tools.ps1`" makelua %*";
 
 # powershell file data
-$POWERSHELL_FILE_DATA = "Invoke-Expression `"& ```"C:\Program Files\MakeLua\makelua.ps1```" makelua `$args`"";
+$POWERSHELL_FILE_DATA = "Invoke-Expression `"& ```"C:\Program Files\MakeLua\make-lua-tools.ps1```" makelua `$args`"";
 
 ################################################################
 #	FUNCTIONS
@@ -511,6 +511,10 @@ CreateBasicDirs;
 GotoDefaultDir;
 
 if ($args.Count -eq 0) {
+	MakeLua-DefaultMessage;
+}
+
+if ($args.Count -eq 1) {
 	MakeLua-DefaultMessage;
 }
 
