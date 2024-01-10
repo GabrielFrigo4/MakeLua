@@ -271,7 +271,6 @@ function MakeLua-Help {
  - uninstall: uninstall lua (and luarocks) / nelua / luajit
 
 #green#(MakeLua install) options: (lua / nelua / luajit)#
- - mklua
  - lua
  - nelua
  - luajit
