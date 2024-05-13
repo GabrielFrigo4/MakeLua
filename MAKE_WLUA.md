@@ -1,13 +1,13 @@
-### What is "windowless Lua"?
+### What is "Windowless Lua"?
 
-Windowless Lua does not create a console window.  
-It runs invisible for user.
+  - Windowless Lua does not create a console window.  
+    It runs invisible for user.
 
-Please note that "windowless" means "doesn't have stdin, stdout and stderr".  
-You will not be able to see error message.  
-`io.read()`, `io.write()` and `print()` in your Lua script will not work.  
-But in some situations invisible Lua is just what you need very much.  
-For example, to avoid a GUI application (especially a game) to lose input focus when some background Lua script is started.
+  - Please note that "windowless" means "doesn't have stdin, stdout and stderr".  
+    You will not be able to see error message.  
+    `io.read()`, `io.write()` and `print()` in your Lua script will not work.  
+    But in some situations invisible Lua is just what you need very much.  
+    For example, to avoid a GUI application (especially a game) to lose input focus when some background Lua script is started.
 
 ----
 
